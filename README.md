@@ -1,5 +1,5 @@
 <div style="text-align:center;">
-  <img src="https://github.com/andresbejarano/tiger/blob/master/img/tiger_pipeline_example.png" />
+  <img src="https://github.com/andresbejarano/tiger/blob/main/img/tiger_pipeline_example.png" />
 </div>
 
 # TIGER - Topological Interlocking GEneratoR
