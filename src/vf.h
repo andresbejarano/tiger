@@ -30,7 +30,8 @@ private:
     // The vector with the dynamic attributes of the faces
     std::vector<DynamicAttributes> m_facesAttributes;
 
-    // The matrix with the vertices of the geometry. Each vertex has coordinates (x, y, z, w)
+    // The matrix with the vertices of the geometry. Each vertex has 
+    // coordinates (x, y, z, w)
     Eigen::MatrixXd m_V;
 
 public:
@@ -51,10 +52,10 @@ public:
 
     /*
     Constructor of the class.
-    @param const std::list<Eigen::Vector3d> & vertices The reference to the vector with the 
-    vertices.
-    @param const std::list<std::vector<size_t>> & faces The reference to the vector with the 
-    faces.
+    @param const std::list<Eigen::Vector3d> & vertices The reference to the 
+    vector with the vertices.
+    @param const std::list<std::vector<size_t>> & faces The reference to the 
+    vector with the faces.
     */
     VF(
         const std::list<Eigen::Vector3d> & vertices, 
@@ -100,8 +101,8 @@ public:
 
     /*
     Adds a face.
-    @param const std::vector<size_t> & indices The reference to the vector with the indices 
-    of the new face.
+    @param const std::vector<size_t> & indices The reference to the vector with
+    the indices of the new face.
     @return size_t The index of the new face.
     */
     size_t addFace(const std::vector<size_t> & indices);
@@ -136,8 +137,10 @@ public:
 
     /*
     Calculates the Axis Aligned Bounding Box of the geometry.
-    @param Eigen::Vector3d & min The coordinates of the minimum corner of the box.
-    @param Eigen::Vector3d & max The coordinates of the maximum corner of the box.
+    @param Eigen::Vector3d & min The coordinates of the minimum corner of the 
+    box.
+    @param Eigen::Vector3d & max The coordinates of the maximum corner of the 
+    box.
     */
     void axisAlignedBoundingBox(Eigen::Vector3d & min, Eigen::Vector3d & max) const;
 
@@ -150,8 +153,8 @@ public:
     Eigen::Vector3d centroid(bool fixZeros = false, double threshold = 1e-8) const;
 
     /*
-    Returns the centroid of the face at a given index. Centroid is calculated as the arithmetic 
-    mean of the vertices.
+    Returns the centroid of the face at a given index. Centroid is calculated 
+    as the arithmetic mean of the vertices.
     @param size_t index The index of the face.
     @param bool fixZeros
     @param double threshold
@@ -196,7 +199,8 @@ public:
     size_t countTriangles() const;
 
     /*
-    Returns the number of triangles required to represent a face in the geometry.
+    Returns the number of triangles required to represent a face in the 
+    geometry.
     @param size_t face The index of the face.
     @return size_t The number of triangles.
     */
@@ -219,8 +223,10 @@ public:
     Returns the direction vector of an edge in a face.
     @param size_t face The index of the face.
     @param size_t edge The index of the edge.
-    @param bool normalize Indicates whether to normalize or not the direction vector.
-    @param bool fixZeros Indicates whether to fix or not the zero values of the direction vector.
+    @param bool normalize Indicates whether to normalize or not the direction 
+    vector.
+    @param bool fixZeros Indicates whether to fix or not the zero values of the
+    direction vector.
     @param double threshold The threshold for values close to zero.
     @return Eigen::Vector3d The direction of the edge in the face.
     */
@@ -234,8 +240,8 @@ public:
     /*
     Returns the reference to the vector with the vertex indices of a face.
     @param size_t index The index of the face.
-    @return const std::vector<size_t> & The reference to the vector with the vertex indices 
-    of the face.
+    @return const std::vector<size_t> & The reference to the vector with the 
+    vertex indices of the face.
     */
     const std::vector<size_t> & face(size_t index) const;
 
@@ -271,8 +277,8 @@ public:
     bool HasEvenNumberOfSides(size_t face) const;
 
     /*
-    Indicates whether the information of the geometry is complete. That is, it has the number of 
-    vertices and faces indicated when constructing the object.
+    Indicates whether the information of the geometry is complete. That is, it 
+    has the number of vertices and faces indicated when constructing the object.
     */
     bool IsComplete() const;
 
@@ -281,13 +287,14 @@ public:
     @param size_t face The index of the face.
     @param const toolkit::Plane & plane The reference to the plane.
     @param double threshold The threshold for values close to zero.
-    @return bool Indicates whether the face is coplanar with the given plane or not.
+    @return bool Indicates whether the face is coplanar with the given plane or
+    not.
     */
     bool IsCoplanar(size_t face, const toolkit::Plane & plane, double threshold = 1e-8) const;
 
     /*
-    Checks if a face is planar. That is, all vertices of the face are coplanar with the plane of 
-    the face.
+    Checks if a face is planar. That is, all vertices of the face are coplanar 
+    with the plane of the face.
     @param size_t face The index of the face.
     @param double threshold The threshold value for zero values.
     @return bool Indicates whether the face is planar.
@@ -295,8 +302,8 @@ public:
     bool IsPlanar(size_t face, double threshold = 1e-8) const;
 
     /*
-    Checks whether a point P lies either within a given face or in one of its edges. We assume the 
-    face is convex and its vertices are coplanar.
+    Checks whether a point P lies either within a given face or in one of its 
+    edges. We assume the face is convex and its vertices are coplanar.
     @param size_t face The index of the face.
     @param const Eigen::Vector3d & P The reference to the point.
     @param double threshold The threshold for values close to zero.
@@ -314,8 +321,10 @@ public:
     /*
     Returns the normal vector of a face.
     @param size_t face The index of the face.
-    @param bool normalize Indicates whether to normalize or not the normal vector.
-    @param bool fixZeros Indicates whether to fix or not the zeros of the normal vector.
+    @param bool normalize Indicates whether to normalize or not the normal 
+    vector.
+    @param bool fixZeros Indicates whether to fix or not the zeros of the 
+    normal vector.
     @param double threshold The threshold for values close to zero.
     @return Eigen::Vector3d The normal vector of the face.
     */
@@ -331,9 +340,11 @@ public:
     void NormalizeVertices();
 
     /*
-    Returns the plane that contains the information of the faces at a given index.
+    Returns the plane that contains the information of the faces at a given 
+    index.
     @param size_t index The index of the face.
-    @param bool normalize Indicates whether to normalize the normal vector of the plane.
+    @param bool normalize Indicates whether to normalize the normal vector of 
+    the plane.
     @param bool fixZeros Indicates whether to fix the zero values.
     @param double threshold The threshold for values close to zero.
     @return toolkit::Plane The plane.
@@ -392,7 +403,8 @@ public:
     VF TriangulateFacesByVertices() const;
 
     /*
-    Calculates the volume of the geometry. The volumes is calculated using the Divergence
+    Calculates the volume of the geometry. The volumes is calculated using the 
+    Divergence
         Theorem. Sources:
         - https://en.wikipedia.org/wiki/Polyhedron#Volume
         - https://www.quora.com/How-can-I-obtain-the-volume-of-an-irregular-body-if-I-just-know-the-vertex-coordinates-of-the-irregular-body
@@ -422,8 +434,9 @@ public:
     void Vertex(size_t index, double x, double y, double z);
 
     /*
-    Calculates the volume of the geometry. This method works on closed geometries only. Volume
-    calculation from https://en.wikipedia.org/wiki/Polyhedron#Volume (formal approach in 
+    Calculates the volume of the geometry. This method works on closed 
+    geometries only. Volume calculation from 
+    https://en.wikipedia.org/wiki/Polyhedron#Volume (formal approach in 
     https://wwwf.imperial.ac.uk/~rn/centroid.pdf
     @return double The volume of the geometry.
     */

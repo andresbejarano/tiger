@@ -443,36 +443,6 @@ VF geometries::Cylinder(
         }
     }
 
-    // If the cylinder is not open then define its bottom and top caps
-    /*if (!open) 
-    {
-        // Initialize a new vector for the vertex indices of the bottom cap. Then, get its reference
-        vf.F.emplace_back();
-        std::vector<size_t> & bottomCap = vf.F[vf.F.size() - 1];
-
-        // Define the vertex indices of the bottom cap
-        for (size_t i = 0; i < rs; i += 1) 
-        {
-            // Add the vertex indices of the bottom cap in ccw order
-            bottomCap.push_back(rs - i - 1);
-        }
-
-        // Initialize a new vector for the vertex indices of the top cap. Then, get its reference
-        vf.F.emplace_back();
-        std::vector<size_t> & topCap = vf.F[vf.F.size() - 1];
-
-        // Get the number of vertices of the cylinder
-        size_t nVertices = vf.V.size();
-
-        // Define the vertices of the top cap
-        for (size_t i = 0; i < rs; i += 1) 
-        {
-            // Add the vertex indices of the top cap in ccw order
-            topCap.push_back(nVertices - rs + i);
-        }
-    }*/
-
-    // Return the vertex coordinates and vertex indices
     return vf;
 }
 
@@ -1028,11 +998,11 @@ VF geometries::TruncatedCone(
     size_t ls)
 {
     // Initialize the vertex coordinates and vertex indices structure
-    /*VF vf;
+    VF vf(rs * (ls + 1), rs * ls);
 
     // Calculate the required constants
     double halfLength = length / 2.0;
-    double angle = 2.0 * PI / (double)rs;
+    double angle = 2.0 * utils::PI / (double)rs;
 
     // Define the end points of the cylinder
     Eigen::Vector3d temp = K.normalized() * halfLength;
@@ -1055,23 +1025,26 @@ VF geometries::TruncatedCone(
     // Calculate the basis vector S
     Eigen::Vector3d S = K.cross(R).normalized();
 
+    size_t l, r;
+    double t, radius, a, sin_a, cos_a;
+
     // Define the vertices of the cylinder
-    for (size_t l = 0; l <= ls; l += 1)
+    for (l = 0; l <= ls; l += 1)
     {
         // Calculate the first term of the parametric equation (it is the same for all vertices at 
         // this length step)
-        double t = (double)l / (double)ls;
+        t = (double)l / (double)ls;
         Eigen::Vector3d term1 = (AB * t) + A;
 
         // Calculate the radius for the current section of the truncated cone
-        double radius = br + (t * (tr - br));
+        radius = br + (t * (tr - br));
 
-        for (size_t r = 0; r < rs; r += 1)
+        for (r = 0; r < rs; r += 1)
         {
             // Calculate angle a and its sine and cosine values
-            double a = (double)r * angle;
-            double sin_a = sin(a);
-            double cos_a =cos(a);
+            a = (double)r * angle;
+            sin_a = sin(a);
+            cos_a = cos(a);
 
             // Calculate the second and third term of the parametric equation
             Eigen::Vector3d r_R_cos_a = R * (radius * cos_a);
@@ -1083,14 +1056,14 @@ VF geometries::TruncatedCone(
         }
     }
 
-    // Define the vertex indices for the faces
-    for (size_t l = 0; l < ls; l += 1)
-    {
-        for (size_t r = 0; r < rs; r += 1)
-        {
-            // Declare the variables for the vertex indices for the current face
-            size_t v0, v1, v2, v3;
+    // Declare the variables for the vertex indices for the current face
+    size_t v0, v1, v2, v3;
 
+    // Define the vertex indices for the faces
+    for (l = 0; l < ls; l += 1)
+    {
+        for (r = 0; r < rs; r += 1)
+        {
             // Calculate the vertex indices that define the current face. The last face of each ring
             // uses the first and last indices in the current ring and the next one
             if (r == rs - 1)
@@ -1112,6 +1085,5 @@ VF geometries::TruncatedCone(
         }
     }
     
-    return vf;*/
-    return Square(1);
+    return vf;
 }

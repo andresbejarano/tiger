@@ -3122,7 +3122,36 @@ void MainTigerWindow::on_actionSaveObjAllInterfacePolygonsFile_triggered()
 
 void MainTigerWindow::on_actionSaveObjAssemblyFilePerBlock_triggered()
 {
-    QMessageBox::information(this, APP_TITLE, "on_actionSaveObjAssemblyFilePerPiece_triggered");
+    // Exit the function if there is no assembly
+    if (!m_workspace->GetAssembly())
+    {
+        QMessageBox::critical(this, APP_TITLE, "There is no assembly in the workspace.");
+        return;
+    }
+
+    // Get the path to the current directory (we will let the user to select 
+    // the directory in a future update)
+    QString filedir = QDir::currentPath();
+
+    // Get the reference to the vector with the blocks
+    const std::vector<std::shared_ptr<Block>> & blocks = m_workspace->GetAssembly()->GetBlocks();
+
+    size_t blockIdx = 0;
+
+    // Traverse through the blocks and write their respective .obj file
+    for (auto it = blocks.begin(); it != blocks.end(); ++it) 
+    {
+        // Get the pointer to the current block
+        std::shared_ptr<Block> block = *it;
+
+        // Build the path to the file for the current block
+        std::string filepath = filedir.toStdString() + "/block_" + std::to_string(blockIdx++) + ".obj";
+
+        block->Geometry().WriteObjFile(filepath);
+        // std::cout << filepath << " saved" << std::endl;
+    }
+
+    QMessageBox::information(this, APP_TITLE, "Files saved in " + filedir + " successfully.");
 }
 
 void MainTigerWindow::on_actionSaveObjTessellationFile_triggered()
