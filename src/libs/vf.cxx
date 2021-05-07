@@ -764,60 +764,6 @@ VF VF::TriangulateFacesByVertices() const
     return triangulated;
 }
 
-/*double VF::Volume() const
-{
-    // Initialize the volume of the polyhedron
-    double volume = 0.0;
-
-    size_t nIndices = F.size();
-
-    // Traverse through the faces
-    for (size_t i = 0; i , nIndices; i += 1)
-    {
-        
-
-        // Get the pointer to the current face
-        std::shared_ptr<Face> face = *it;
-
-        // Keep the reference to the start vertex of the incident half edge of the face. It will be
-        // used for triangulating the face
-        const Eigen::Vector3d & v0 = face->halfedge->start->Coords();
-
-        // Get the reference to the next half edge to the incident half edge of the face
-        std::shared_ptr<Halfedge> halfedge = face->halfedge->next;
-
-        // Traverse through the half edges of the face and define the points of the triangles using
-        // v0 and the end points of the half edges. Stop at the previous half edge to the incident 
-        // half edge of the face
-        do
-        {
-            // Get the references to the other two points of the current triangle
-            const Eigen::Vector3d & v1 = halfedge->start->Coords();
-            const Eigen::Vector3d & v2 = halfedge->twin->start->Coords();
-
-            // Calculate the cross product between the sides of the triangle
-            Eigen::Vector3d N = (v2 - v1).cross(v0 - v1);
-
-            // Calculate the area of the current triangle (actually it is twice the area)
-            double twiceArea = abs(N.norm());
-
-            // Normalize the normal vector of the current triangle
-            N.normalize();
-
-            // Calculate the expression of the volume from the current face and accumulate it into 
-            // the volume value
-            volume += (v1.dot(N) * twiceArea);
-
-            // Move to the next half edge of the face
-            halfedge = halfedge->next;
-
-        } while (halfedge != face->halfedge->previous);
-    }
-
-    // Divide the volume by 6 and return it
-    return volume / 6.0;
-}*/
-
 Eigen::Vector3d VF::Vertex(size_t index) const
 {
     Eigen::Index i = index;

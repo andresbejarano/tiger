@@ -1,5 +1,6 @@
 #include <tiger/toolkit/linesegment.h>
 #include <tiger/utils.h>
+
 #include <iostream>
 
 toolkit::LineSegment::LineSegment() : m_A(0.0, 0.0, 0.0), m_B(1.0, 0.0, 0.0)
@@ -196,4 +197,3 @@ void toolkit::LineSegment::Write() const
     std::cout << "A = (" << m_A.x() << ", " << m_A.y() << ", " << m_A.z() << ")" << std::endl;
     std::cout << "B = (" << m_B.x() << ", " << m_B.y() << ", " << m_B.z() << ")" << std::endl;
 }
-

@@ -1,7 +1,7 @@
 #include <tiger/tic/tessellation.h>
+#include <tiger/utils.h>
 #include <Eigen/Geometry>
 #include <queue>
-#include <tiger/utils.h>
 #include <iostream>
 
 Tessellation::Tessellation() 

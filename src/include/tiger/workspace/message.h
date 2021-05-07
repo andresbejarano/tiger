@@ -3,10 +3,10 @@
 
 #pragma once
 
-/*
-The class representing a message. Instances of this class are usually used for indicating missing 
-requirements for the procedures in a workspace.
-*/
+//
+// The class representing a message. Instances of this class are usually used for indicating missing 
+// requirements for the procedures in a workspace.
+//
 class Message 
 {
 
@@ -46,38 +46,38 @@ private:
 
 public:
 
-	/*
-	Constructor of the class. Object initializes with MSG_DEFAULT type.
-	*/
+	//
+    // Constructor of the class. Object initializes with MSG_DEFAULT type.
+	//
 	Message();
 
-    /*
-    Constructor of the class.
-    @param MESSAGE_TYPE type The type of the message.
-    */
+    //
+    // Constructor of the class.
+    // @param MESSAGE_TYPE type The type of the message.
+    //
     Message(MESSAGE_TYPE type);
 
-    /*
-    Destructor of the class.
-    */
+    //
+    // Destructor of the class.
+    //
     ~Message();
 
-    /*
-    Returns the message text.
-    @return const char * The text of the message.
-    */
+    //
+    // Returns the message text.
+    // @return const char * The text of the message.
+    //
     const char * getText() const;
 
-    /*
-    Returns the message type.
-    @return MESSAGE_TYPE The type of the message.
-    */
+    //
+    // Returns the message type.
+    // @return MESSAGE_TYPE The type of the message.
+    //
     MESSAGE_TYPE getType() const;
 
-    /*
-    Sets the content of the message based on the given message type.
-    @param MESSAGE_TYPE type The type of the message.
-    */
+    //
+    // Sets the content of the message based on the given message type.
+    // @param MESSAGE_TYPE type The type of the message.
+    //
     void set(MESSAGE_TYPE type);
 
 };

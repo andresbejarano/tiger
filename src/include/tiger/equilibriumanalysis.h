@@ -6,17 +6,17 @@
 #include <tiger/ds/vf.h>
 #include <map>
 
-/*
-The namespace for storing the classes and methods related to the Equilibrium Analysis.
-*/
+//
+// The namespace for storing the classes and methods related to the Equilibrium Analysis.
+//
 namespace EquilibriumAnalysis
 {
 
-    /*
-    The class for storing the information of a force after running the equilibrium analysis. Each 
-    force object stores its respective component magnitudes and the indices of the interface 
-    polygon and respective vertex.
-    */
+    //
+    // The class for storing the information of a force after running the equilibrium analysis. 
+    // Each force object stores its respective component magnitudes and the indices of the 
+    // interface polygon and respective vertex.
+    //
     class Force 
     {
 
@@ -42,37 +42,37 @@ namespace EquilibriumAnalysis
         // The index of the vertex in the interface polygon
         size_t vertexIndex;
 
-        /*
-        Constructor of the class.
-        */
+        //
+        // Constructor of the class.
+        //
         Force();
 
-        /*
-        @param double value The normalizing value.
-        */
+        //
+        // @param double value The normalizing value.
+        //
         void Normalize(double value);
 
-        /*
-        Sets the content of the force.
-        @param size_t intfIdx The index of the interface polygon.
-        @param size_t vIdx The index of the vertex in the interface polygon.
-        @param double C The magnitude of the compression component.
-        @param double T The magnitude of the tension component.
-        @param double UT The magnitude of the U tangential component.
-        @param double VT The magnitude of the V tangential component.
-        */
-        void Set(size_t intfIdx,size_t vIdx, double C, double T, double UT, double VT);
+        //
+        // Sets the content of the force.
+        // @param size_t intfIdx The index of the interface polygon.
+        // @param size_t vIdx The index of the vertex in the interface polygon.
+        // @param double C The magnitude of the compression component.
+        // @param double T The magnitude of the tension component.
+        // @param double UT The magnitude of the U tangential component.
+        // @param double VT The magnitude of the V tangential component.
+        //
+        void Set(size_t intfIdx, size_t vIdx, double C, double T, double UT, double VT);
 
-        /*
-        Writes the content of the force.
-        */
+        //
+        // Writes the content of the force.
+        //
         void Write() const;
     };
 
-    /*
-    The class representing the results of an equilibrium analysis. Results store the magnitudes of 
-    the forces along with some metadata for visualization purposes.
-    */
+    //
+    // The class representing the results of an equilibrium analysis. Results store the magnitudes of 
+    // the forces along with some metadata for visualization purposes.
+    //
     class Result 
     {
 
@@ -130,94 +130,73 @@ namespace EquilibriumAnalysis
 
     public:
 
-        /*
-        @param Force::TYPE type
-        @param double & min
-        @param double & max
-        */
-        void GetMinMaxForces(Force::TYPE type, double & min, double & max) const;
-
-        /*
-        @param double & min
-        @param double & max
-        */
-        void GetCTMinMaxForces(double & min, double & max) const;
-
-        /*
-        */
-        void Normalize(double value);
-
-        /*
-        Constructor of the class.
-        */
+        //
+        // Constructor of the class.
+        //
         Result();
 
-        /*
-        Resets the content of the results.
-        */
+        //
+        // @param Force::TYPE type
+        // @param double & min
+        // @param double & max
+        //
+        void GetMinMaxForces(Force::TYPE type, double & min, double & max) const;
+
+        //
+        // @param double & min
+        // @param double & max
+        //
+        void GetCTMinMaxForces(double & min, double & max) const;
+
+        //
+        //
+        void Normalize(double value);
+
+        //
+        // Resets the content of the results.
+        //
         void Reset();
 
-        /*
-        */
+        //
+        //
         void UpdateMinMaxValues();
 
-        /*
-        */
+        //
+        //
         void Write() const;
 
-        /*
-        */
+        //
+        //
         void WriteForceComponents() const;
 
-        /*
-        */
+        //
+        //
         void WriteForceRanges() const;
 
     };
 
-    /*
-    Runs the equilibrium analysis. 
-    @param const std::vector<Eigen::Vector3d> & C The reference to the vector with the centroid of the
-    blocks.
-    @param const std::vector<std::vector<double>> & W The reference to the vector with the loads that
-    apply to the blocks.
-    @param const std::list<dcel::DCEL> & I The reference to the list with the geometry of the
-    interface polygons between blocks.
-    @param const std::vector<std::tuple<size_t, size_t>> & BI The reference to the vector with the
-    tuples indicating how blocks and interface polygons interact. First index references the block,
-    second index references the interface polygon
-    @param double friction The friction coefficient.
-    @param double & energy The optimal value.
-    @param bool verbose Indicates whether to print results as they are calculated.
-    @param bool files Indicates whether to write the files with the content of the model.
-    @param std::string fileprefix
-    @param double cWeight
-    @param double tWeight
-    @param double uWeight
-    @param double vWeight
-    @return bool
-    */
-    /*bool Run(
-        const std::vector<Eigen::Vector3d> & C,
-        const std::vector<std::vector<double>> & W,
-        const std::vector<std::shared_ptr<VF>> & I, 
-        const std::list<std::tuple<size_t, size_t>> & BI,
-        double friction,
-        double & energy,
-        double & compressions,
-        double & tensions,
-        double & uTangentials,
-        double & vTangentials,
-        bool verbose = false,
-        bool files = false,
-        std::string fileprefix = "model",
-        double cWeight = 1.0,
-        double tWeight = 1.0e+5,
-        double uWeight = 1.0e+3,
-        double vWeight = 1.0e+3);*/
-
-    /*
-    */
+    //
+    // Runs the equilibrium analysis. 
+    // @param const std::vector<Eigen::Vector3d> & C The reference to the vector with the centroid 
+    // of the blocks.
+    // @param const std::vector<std::vector<double>> & W The reference to the vector with the loads
+    // that apply to the blocks.
+    // @param const std::list<dcel::DCEL> & I The reference to the list with the geometry of the
+    // interface polygons between blocks.
+    // @param const std::vector<std::tuple<size_t, size_t>> & BI The reference to the vector with 
+    // the tuples indicating how blocks and interface polygons interact. First index references the
+    // block, second index references the interface polygon
+    // @param double friction The friction coefficient.
+    // @param double & energy The optimal value.
+    // @param bool verbose Indicates whether to print results as they are calculated.
+    // @param bool files Indicates whether to write the files with the content of the model.
+    // @param std::string fileprefix
+    // @param double cWeight
+    // @param double tWeight
+    // @param double uWeight
+    // @param double vWeight
+    // @return bool
+    //
     bool Run(
         const std::vector<Eigen::Vector3d> & C,
         const std::vector<std::vector<double>> & W,
@@ -228,7 +207,7 @@ namespace EquilibriumAnalysis
         bool verbose = false,
         bool files = false,
         std::string fileprefix = "model",
-        double cWeight = 1.0,
+        double cWeight = 1.0e5,
         double tWeight = 1.0e5,
         double uWeight = 1.0e3,
         double vWeight = 1.0e3, 

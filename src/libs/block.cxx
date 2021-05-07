@@ -5,20 +5,38 @@
 #include <tiger/toolkit/algorithms.h>
 #include <iostream>
 
-Block::Block() : m_enabled(true), m_faceIndex(0)
+Block::Block() : 
+    m_enabled(true), 
+    m_faceIndex(0), 
+    m_loads({ 0.0 , 0.0 , 0.0 , 0.0 , 0.0 , 0.0 })
 {
 }
 
 Block::Block(const VF & vf, size_t faceIndex) : 
     GeometricClass(vf), 
     m_enabled(true), 
-    m_faceIndex(faceIndex)
+    m_faceIndex(faceIndex), 
+    m_loads({ 0.0 , 0.0 , 0.0 , 0.0 , 0.0 , 0.0 })
 {
 }
 
 Block::~Block() 
 {
     Clear();
+}
+
+void Block::AddForceLoad(double x, double y, double z)
+{
+    m_loads[0] += x;
+    m_loads[1] += y;
+    m_loads[2] += z;
+}
+
+void Block::AddTorqueLoad(double x, double y, double z)
+{
+    m_loads[3] += x;
+    m_loads[4] += y;
+    m_loads[5] += z;
 }
 
 double Block::CentralLength(
@@ -302,24 +320,12 @@ Eigen::Vector3d Block::Intersect(
 {
     assert(tessellation);
 
-    //size_t faceIndex;
-    //assert(m_attributes.Get<size_t>(ATTRIB_FACE_INDEX, faceIndex));
-
     std::shared_ptr<dcel::Face> face = tessellation->DCEL()->Faces()[m_faceIndex];
-
-    // TO BE DELETED
-    //size_t blockIndex;
-    //assert(face->Attributes().Get<size_t>(ATTRIB_BLOCK_INDEX, blockIndex));
-    //assert(m_faceIndex == blockIndex);
-    // TO BE DELETED
 
     double sign = (direction >= 0) ? 1.0 : -1.0;
 
     // Define a ray using the centroid and normal vector of the associated face of the block
     toolkit::Ray ray(face->Centroid(), face->Normal() * sign, true);
-    
-    // THIS IS NOT THE RIGHT FUNCTION!!!!
-    //assert(m_vf.IsPointInSurface(ray.Start(), threshold));
 
     // First, check if the ray contains a vertex of the geometry
 
@@ -682,6 +688,20 @@ VF Block::PlaneOffsetClipping(
 void Block::SetEnabled(bool enabled)
 {
     m_enabled = enabled;
+}
+
+void Block::setForceLoad(double x, double y, double z) 
+{
+    m_loads[0] = x;
+    m_loads[1] = y;
+    m_loads[2] = z;
+}
+
+void Block::SetTorqueLoad(double x, double y, double z) 
+{
+    m_loads[3] = x;
+    m_loads[4] = y;
+    m_loads[5] = z;
 }
 
 std::vector<int> Block::VertexLocation(const toolkit::Plane & plane, double threshold)

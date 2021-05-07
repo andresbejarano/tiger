@@ -1,8 +1,6 @@
 #include <tiger/toolkit/algorithms.h>
 #include <tiger/ds/algorithms.h>
-
 #include <tiger/utils.h>
-
 
 #include <Eigen/Geometry>
 
@@ -190,66 +188,6 @@ bool algorithms::intersectCoplanarFaces(
     return points.size() > 0;
 }
 
-/*
-bool algorithms::intersectCoplanarFaces(
-    std::shared_ptr<dcel::Face> F1,
-    std::shared_ptr<dcel::Face> F2,
-    std::vector<Eigen::Vector3d> & points,
-    double threshold)
-{
-    //
-    assert(F1 && F2);
-
-    // Clear the vector where the intersection points will be stored
-    points.clear();
-
-    // Get the pointer to the incident half edge from face F1
-    std::shared_ptr<dcel::Halfedge> currentF1halfedge = F1->halfedge;
-
-    // Traverse through the half edges of face F1
-    do
-    {
-        // Step 1: Check if the start vertex of the current half edge from face F1 is within face
-        // F2. If so, make a copy of the point and insert it into the intersection points set
-        if (F2->isPointIn(currentF1halfedge->start->Coords(), threshold))
-        {
-            points.emplace_back(currentF1halfedge->start->Coords());
-        }
-
-        // Get the incident half edge from face F2
-        std::shared_ptr<dcel::Halfedge> currentF2Halfedge = F2->halfedge;
-
-        // Traverse through the half edges of face F2
-        do
-        {
-            // Step 2: Check if the current half edge in face F1 intersects with the current half
-            // edge in face F2. If so, check if the intersection parameters s and t lie between 0
-            // and 1, then insert the intersection point into the intersection points set
-            Eigen::Vector3d point;
-            double s, t;
-            bool intersect = currentF1halfedge->intersect(currentF2Halfedge, point, s, t, threshold);
-
-            //
-            if (intersect && s >= 0.0 && s <= 1.0 && t >= 0.0 && t <= 1.0)
-            {
-                points.emplace_back(point);
-            }
-
-            // Move to the next half edge in face F2
-            currentF2Halfedge = currentF2Halfedge->next;
-
-        } while (currentF2Halfedge != F2->halfedge);
-
-        // Move to the next half edge in face F1
-        currentF1halfedge = currentF1halfedge->next;
-
-    } while (currentF1halfedge != F1->halfedge);
-
-    // Indicate at least one intersection point was found
-    return points.size() > 0;
-}
-*/
-
 bool algorithms::intersectCoplanarFaces(
     std::shared_ptr<dcel::Face> F1,
     std::shared_ptr<dcel::Face> F2,
@@ -320,14 +258,6 @@ int algorithms::isLeftTurn(
     double dot = (P2 - P1).cross(plane.Point() - P1).dot(plane.Normal());
     return (abs(dot) <= threshold) ? 0 : ((dot > 0) ? 1 : -1);
 }
-
-
-
-/*double algorithms::Min(std::vector<double> & values)
-{
-    std::vector<double>::iterator result = std::min_element(values.begin(), values.end());
-    return *result;
-}*/
 
 bool algorithms::planeLineSegmentIntersection(
     const toolkit::Plane & plane,

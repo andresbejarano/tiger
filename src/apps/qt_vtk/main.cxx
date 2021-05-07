@@ -1,11 +1,8 @@
+#include "MainTigerWindow.h"
 #include <QApplication>
 #include <QSurfaceFormat>
 #include <QVTKOpenGLNativeWidget.h>
-#include "MainTigerWindow.h"
 
-/*
-
-*/
 int main( int argc, char** argv )
 {
 	// needed to ensure appropriate OpenGL context is created for VTK rendering

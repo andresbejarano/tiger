@@ -105,8 +105,6 @@ size_t Assembly::CalculateInterfacePolygons(
     assert(tessellation->IsDCELLoaded());
     assert(m_blocks.size() > 0);
 
-    //tessellation->LoadDCEL();
-
     // Get the reference to the geometry of the tessellation
     std::shared_ptr<dcel::DCEL> geometry = tessellation->DCEL();
 
@@ -195,8 +193,6 @@ size_t Assembly::CalculateInterfacePolygons(
             currentInterface = nullptr;
         }
 
-        //std::cout << "Finished block " << idx << std::endl;
-
         // Update the index for the next interface polygon
         idx += 1;
 
@@ -211,15 +207,6 @@ size_t Assembly::CalculateInterfacePolygons(
 
     // 
     return nExistingInterfacePolygons;
-}
-
-bool Assembly::CalculateOverlapping(
-    std::shared_ptr<Tessellation> tessellation, 
-    std::vector<std::shared_ptr<VF>> & overlapping, 
-    double threshold) const
-{
-    //TODO
-    return false;
 }
 
 void Assembly::Centroids(std::vector<Eigen::Vector3d> & C, bool fixZeros, double threshold) const
@@ -338,59 +325,6 @@ bool Assembly::IsEmpty() const
     return m_blocks.empty();
 }
 
-/*void Assembly::LinkBlocksToTiles(std::shared_ptr<Tessellation> tessellation)
-{
-    // There must exist a tessellation
-    assert(tessellation);
-    assert(tessellation->IsDCELLoaded());
-
-    //tessellation->LoadDCEL();
-
-    std::shared_ptr<dcel::DCEL> geometry = tessellation->DCEL();
-
-    // Set the index of the faces. Indices are stored in the ATTRIB_INDEX dynamic attribute
-    //domain->GetGeometry().SetFacesIndex();
-    geometry->SetFacesIndex();
-
-    // Get the reference to the vector with the pointers to the faces of the tessellation
-    //std::vector<std::shared_ptr<dcel::Face>> faces = domain->GetGeometry().faces;
-    //const std::vector<std::shared_ptr<dcel::Face>> & faces = geometry->Faces();
-
-    std::shared_ptr<dcel::Face> face = nullptr;
-
-    size_t faceIndex = 0, blockIndex = 0;
-
-    // Traverse through the faces of the tessellation
-    for (auto it = geometry->Faces().begin(); it != geometry->Faces().end(); ++it)
-    {
-        // Get the pointer to the current face
-        face = *it;
-
-        // Get the index of the current face
-        assert(face->Attributes().Get<size_t>(ATTRIB_INDEX, faceIndex));
-
-        // Get the index of the block associated to the current face
-        face->Attributes().Get<size_t>(ATTRIB_BLOCK_INDEX, blockIndex);
-
-        // Set the index of the associated face to the current block
-        m_blocks[blockIndex]->Attributes().Set<size_t>(ATTRIB_FACE_INDEX, faceIndex);
-    }
-}*/
-
-std::vector<std::vector<double>> Assembly::Loads(double density) const
-{
-    size_t nblocks = m_blocks.size(), i = 0;
-
-    std::vector<std::vector<double>> loads(nblocks);
-
-    for (i = 0; i < nblocks; i += 1)
-    {
-        loads[i] = m_blocks[i]->Loads(density);
-    }
-
-    return loads;
-}
-
 size_t Assembly::NeighborhoodCentralLengths(
     const std::shared_ptr<Tessellation> tessellation,
     size_t index, 
@@ -442,48 +376,6 @@ void Assembly::RemoveBlocksAttribute(const std::string & name)
         (*it)->Attributes().Erase(name);
     }
 }
-
-/*void Assembly::Set(std::vector<std::shared_ptr<block>> & blocks)
-{
-    // Clear the blocks and resize the vector
-    Clear();
-
-    // Get the number of given blocks
-    size_t nblocks = blocks.size();
-
-    // Resize the vector for storing the pointers of the blocks
-    m_blocks.resize(nblocks);
-
-    // Traverse through the vector with the given blocks and copy the pointers
-    for (size_t i = 0; i < nblocks; i += 1)
-    {
-        m_blocks[i] = blocks[i];
-    }
-}*/
-
-/*void Assembly::Set(const std::vector<VF> & vfs) 
-{
-    Clear();
-
-    size_t nblocks = vfs.size(), i = 0;
-
-    m_blocks.resize(nblocks, nullptr);
-
-    for (i = 0; i < nblocks; i += 1) 
-    {
-        m_blocks[i] = std::make_shared<Block>(vfs[i]);
-    }
-}*/
-
-/*void Assembly::SetBlockIndex() 
-{
-    size_t nblocks = m_blocks.size(), i = 0;
-
-    for (i = 0; i < nblocks; i += 1)
-    {
-        m_blocks[i]->Attributes().Set<size_t>(ATTRIB_INDEX, i);
-    }
-}*/
 
 template <typename T>
 void Assembly::SetBlocksAttribute(const std::string & name, T value)

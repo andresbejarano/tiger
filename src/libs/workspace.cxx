@@ -1,8 +1,8 @@
+#include <tiger/workspace/workspace.h>
+#include <tiger/workspace/message.h>
 #include <tiger/utils.h>
 #include <tiger/geometries.h>
 #include <tiger/toolkit/algorithms.h>
-#include <tiger/workspace/workspace.h>
-#include <tiger/workspace/message.h>
 
 #include <queue>
 #include <Eigen/Geometry>
@@ -310,13 +310,6 @@ bool Workspace::CheckSetEdgeDirectionsRequirements(Message& msg) const
     {
         // Get the pointer to the current face
         face = *it;
-
-        // If the face does not have the center dynamic attribute then report it
-        //if (!face->Attributes().Has(ATTRIB_CENTER)) 
-        //{
-        //    msg.set(Message::MSG_NO_TILE_CENTERS);
-        //    return false;
-        //}
 
         // If the face does not have an even number of sides then report it
         if (!face->HasEvenNumberOfSides())
@@ -636,7 +629,6 @@ void Workspace::GenerateEquilibriumSystem(
             interfaceIndices.insert(std::make_pair(origInterfaceIndex, newInterfaceIndex));
 
             // Get the geometry of the interface and insert it in the interfaces vector
-            //I.push_back(m_interfaces->GetInterfaces()[origInterfaceIndex]->getGeometry());
             I.push_back(m_interfaces->GetInterfaces()[origInterfaceIndex]);
 
             // Get the pointer to the interface polygon, indicate it is used in the equilibrium 
@@ -815,7 +807,6 @@ bool Workspace::HasRotatedVectors() const
     }
 
     // Get the reference to the geometry of the tessellation
-    //dcel::DCEL & geometry = m_tessellation->GetGeometry();
     std::shared_ptr<dcel::DCEL> geometry = m_tessellation->DCEL();
 
     // Traverse through the half edges of the tessellation
@@ -899,7 +890,6 @@ void Workspace::GetBlockElements(
 
     // Get the intersection points from the planes. These are the vertices of the block. If no 
     // intersection points then move to the next face
-    //if (!utils::GetIntersectionPointsFromPlanes(planes, vf.V))
     if (!algorithms::getIntersectionPointsFromPlanes(planes, points))
     {
         return;
@@ -918,11 +908,7 @@ void Workspace::GetBlockElements(
     assert(face->halfedge->Attributes().Get<int>(ATTRIB_DIRECTION_VALUE, dir));
 
     // Get the number of intersection points
-    //size_t nPoints = vf.V.size();
     size_t nPoints = points.size();
-
-    // 
-    //std::list<std::vector<size_t>> tiles;
 
     // Traverse through the intersection points and generate the tiles of the triangular strip 
     // of the block
@@ -935,8 +921,6 @@ void Workspace::GetBlockElements(
 
         // Initialize the vector for storing the vertex indices for the current face of the 
         // block. Then, get its reference
-        //vf.F.emplace_back();
-        //std::vector<size_t> & indices = vf.F[vf.F.size() - 1];
         std::vector<size_t> indices;
 
         // If the direction is positive it means the intersection point is above the face. 
@@ -966,11 +950,6 @@ void Workspace::GetBlockElements(
     // defined. Such tiles are polygons with half number of sides with respect to the face
     if (nPoints > 4)
     {
-        // Initialize the vector for the vertex indices of the top face of the block. Then, get
-        // its reference
-        //vf.F.emplace_back();
-        //std::vector<size_t> & topFace = vf.F[vf.F.size() - 1];
-
         std::vector<size_t> topIndices;
 
         // Define the vertex indices for the top face of the block
@@ -984,8 +963,6 @@ void Workspace::GetBlockElements(
 
         // Initialize the vector for the vertex indices of the bottom face of the block. Then, 
         // get its reference
-        //vf.F.emplace_back();
-        //std::vector<size_t> & bottomFace = vf.F[vf.F.size() - 1];
         std::vector<size_t> bottomIndices;
 
         // Define the vertex indices for the bottom face of the block
@@ -1022,7 +999,6 @@ bool Workspace::RunEquilibriumAnalysis(
     std::list<std::tuple<size_t, size_t>> PI;
     if (!GetBlockInterfaceRelations(PI)) 
     {
-        //MessageBox(NULL, "No block-interface relations", "Equilibrium Analysis", MB_OK);
         return false;
     }
 
@@ -1149,9 +1125,6 @@ void Workspace::SetAssemblyUsingAdaptiveTileOffsetClippedBlocks(
 
     // Set the blocks to the assembly
     SetAssembly(blocks);
-
-    // Link the tiles of the tessellation to their respective block in the assembly
-    //m_assembly->LinkBlocksToTiles(m_tessellation);
 }
 
 void Workspace::SetAssemblyUsingHeightBisectionMethod(double height, bool boundary) 
@@ -1165,9 +1138,6 @@ void Workspace::SetAssemblyUsingHeightBisectionMethod(double height, bool bounda
 
     // Set the blocks to the assembly
     SetAssembly(blocks);
-
-    // Link the tiles of the tessellation to their respective block in the assembly
-    //m_assembly->LinkBlocksToTiles(m_tessellation);
 }
 
 void Workspace::SetAssemblyUsingTileOffsetClippedBlocks(
@@ -1186,9 +1156,6 @@ void Workspace::SetAssemblyUsingTileOffsetClippedBlocks(
 
     // Set the blocks to the assembly
     SetAssembly(blocks);
-
-    // Link the tiles of the tessellation to their respective block in the assembly
-    //m_assembly->LinkBlocksToTiles(m_tessellation);
 }
 
 void Workspace::SetAssemblyUsingTiltingAngleMethod(double angle)
@@ -1202,49 +1169,7 @@ void Workspace::SetAssemblyUsingTiltingAngleMethod(double angle)
 
     // Set the blocks to the assembly
     SetAssembly(blocks);
-
-    // Link the tiles of the tessellation to their respective block in the assembly
-    //m_assembly->LinkBlocksToTiles(m_tessellation);
 }
-
-/*void Workspace::SetAssemblyUsingTruncatedblocks(double intrados, double extrados) 
-{
-    // There must be a tessellation
-    assert(m_tessellation);
-
-    // There must be a non-empty assembly of blocks
-    assert(m_assembly);
-    assert(m_assembly->blocks() > 0);
-
-    // Generate the blocks by truncating them
-    std::vector<std::shared_ptr<block>> blocks;
-    assert(Truncateblocks(intrados, extrados, blocks));
-
-    // Set the blocks to the assembly
-    SetAssembly(blocks);
-
-    // Link the tiles of the tessellation to their respective block in the assembly
-    m_assembly->LinkblocksTotiles(m_tessellation);
-
-    // Get the reference to the vector with the blocks of the assembly
-    const std::vector<std::shared_ptr<block>> & assemblyblocks = m_assembly->Getblocks();
-
-    // Traverse through the blocks of the assembly and set them as modified
-    for (auto it = assemblyblocks.begin(); it != assemblyblocks.end(); ++it) 
-    {
-        // Set the current block as modified
-        (*it)->Attributes().Set<bool>(ATTRIB_MODIFIED, true);
-    }
-
-    // Generate the interface polygons between the blocks of the assembly
-    std::vector<std::shared_ptr<VF>> interfaces;
-
-    // If there are interface polygons then set them to the workspace
-    if (m_assembly->CalculateInterfacePolygons(m_tessellation, interfaces)) 
-    {
-        SetInterfacePolygons(interfaces);
-    }
-}*/
 
 void Workspace::SetTessellation(const VF & vf)
 {
@@ -1371,25 +1296,6 @@ bool Workspace::TiltingAngleMethod(double angle, std::vector<VF> & blocks) const
     return GetBlocksFromRotatedVectors(blocks);
 }
 
-/*bool Workspace::Truncateblocks(
-    double intrados, 
-    double extrados, 
-    std::vector<std::shared_ptr<block>> & blocks) const 
-{
-    // There must be a tessellation
-    assert(m_tessellation);
-
-    // There must be a non-empy assembly of blocks
-    assert(m_assembly);
-    assert(m_assembly->blocks() > 0);
-
-    // 
-    m_assembly->Truncateblocks(m_tessellation, intrados, extrados, blocks);
-
-    // Generate the geometry of the truncated blocks
-    return blocks.size() > 0;
-}*/
-
 void Workspace::Write() const
 {
     // If there is a tessellation then write its content
@@ -1434,8 +1340,6 @@ void Workspace::Write(std::stringstream & ss) const
 
 void Workspace::WriteAllAssemblyGeogebraJsFile(const std::string filename, int r, int g, int b, double threshold) const
 {
-    //assert();
-
     // There must exist an assembly
     assert(m_assembly);
 
@@ -1487,7 +1391,6 @@ void Workspace::WriteGeogebraJSGeometryFile(const std::string & filename, double
         }
 
         // Get the reference to the geometry of the tessellation
-        //dcel::DCEL & geometry = m_tessellation->Geometry();
         std::shared_ptr<dcel::DCEL> geometry = m_tessellation->DCEL();
 
         // Write the GepGebra commands that generate the geometry of the tessellation

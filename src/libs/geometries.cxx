@@ -2,8 +2,6 @@
 #include <tiger/utils.h>
 #include <Eigen/Geometry>
 
-const double TWO_PI = 2.0 * acos(-1.0);
-
 /*VF geometries::BendedSquare(
     double radius, 
     double length, 
@@ -247,8 +245,8 @@ VF geometries::Cyclide(double a, double b, double c, double d, size_t Rs, size_t
     VF vf(n, n);
 
     // Calculate the angle steps
-    double uStep = TWO_PI / (double)Rs;
-    double vStep = TWO_PI / (double)rs;
+    double uStep = utils::TWO_PI / (double)Rs;
+    double vStep = utils::TWO_PI / (double)rs;
 
     double u, sin_u, cos_u, v, sin_v, cos_v, denom, x, y, z;
 
@@ -900,8 +898,8 @@ VF geometries::Torus(
     VF vf(n, n);
 
     // Calculate the angle steps
-    double uStep = TWO_PI / (double)Rs;
-    double vStep = TWO_PI / (double)rs;
+    double uStep = utils::TWO_PI / (double)Rs;
+    double vStep = utils::TWO_PI / (double)rs;
 
     double u, sin_u, cos_u, v, sin_v, cos_v;
 

@@ -5,50 +5,44 @@
 #include <filesystem>
 #include <set>
 
+// Include Qt related headers
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QScreen>
 #include <QStandardPaths>
 #include <QVTKOpenGLNativeWidget.h>
 
+// Include VTK related headers
 #include <vtkCellArray.h>
 #include <vtkCellData.h>
-#include <vtkCellPicker.h>
 #include <vtkColorTransferFunction.h>
-#include <vtkCubeSource.h>
-#include <vtkDataObjectToTable.h>
 #include <vtkDoubleArray.h>
 #include <vtkElevationFilter.h>
+#include <vtkFollower.h>
 #include <vtkGenericOpenGLRenderWindow.h>
-#include <vtkLightsPass.h>
 #include <vtkLine.h>
 #include <vtkMatrix4x4.h>
 #include <vtkNamedColors.h>
 #include <vtkNew.h>
 #include <vtkOBJExporter.h>
-#include <vtkOrientationMarkerWidget.h>
 #include <vtkPointData.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkProp3DCollection.h>
 #include <vtkProperty.h>
-#include <vtkQtTableView.h>
-#include <vtkRendererDelegate.h>
-#include <vtkRenderStepsPass.h>
 #include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkRenderer.h>
-#include <vtkRendererCollection.h>
 #include <vtkScalarBarActor.h>
 #include <vtkSmartPointer.h>
-#include <vtkSphereSource.h>
-#include <vtkSSAOPass.h>
 #include <vtkTextProperty.h>
 #include <vtkTriangle.h>
 #include <vtkUnsignedCharArray.h>
+#include <vtkVectorText.h>
 #include <vtkVersion.h>
 #include <vtkVRMLExporter.h>
 
+// Include dialog headers
 #include "adaptivetileoffsetclippingparametersdialog.h"
 #include "bendedsquareparametersdialog.h"
 #include "centerdirectionparametersdialog.h"
@@ -72,8 +66,10 @@
 #include "torusparametersdialog.h"
 #include "truncatedconeparametersdialog.h"
 
+// Include TIGER related headers
 #include <tiger/geometries.h>
 #include <tiger/utils.h>
+
 #include <tinyobjloader/tiny_obj_loader.h>
 
 #if VTK_VERSION_NUMBER >= 89000000000ULL
@@ -82,16 +78,15 @@
 
 // 
 const QString APP_TITLE = "TIGER";
-//const QString NO_TESSELLATION_VISIBLE_TITLE = "Tessellation Not Visible";
 const QString NO_INTERFACES_VISIBLE_CONTENT = "The interface polygons not visible. Do you want to view it?";
 const QString NO_TESSELLATION_VISIBLE_CONTENT = "The tessellation is not visible. Do you want to view it?";
 
-/*
-Sets the UV vectors that span a given plane.
-@param const QString & plane The reference to the plane indicator.
-@param Eigen::Vector3d & U The reference to the U vector.
-@param Eigen::Vector3d & V The reference to the V vector.
-*/
+//
+// Sets the UV vectors that span a given plane.
+// @param const QString & plane The reference to the plane indicator.
+// @param Eigen::Vector3d & U The reference to the U vector.
+// @param Eigen::Vector3d & V The reference to the V vector.
+//
 void UVFromPlane(const QString & plane, Eigen::Vector3d & U, Eigen::Vector3d & V) 
 {
     assert(plane == "XY" || plane == "XZ" || plane == "YZ");
@@ -112,8 +107,6 @@ void UVFromPlane(const QString & plane, Eigen::Vector3d & U, Eigen::Vector3d & V
         V << 0, 1, 0;
     }
 }
-
-vtkStandardNewMacro(TilePickerStyle);
 
 MainTigerWindow::MainTigerWindow() : 
     m_currentInterfacePolygonsType(INTERFACES::PLAIN), 
@@ -230,27 +223,15 @@ MainTigerWindow::MainTigerWindow() :
 	m_vtkCamera->SetPosition(3, 3, 3);
 	m_vtkCamera->SetFocalPoint(0, 0, 0);
 
-    // 
-    //vtkWeakPointer<vtkRenderStepsPass> renderSteps = vtkRenderStepsPass::New();
-
-    // Initialize the Screen-Space Ambient Occlusion (SSAO) pass. It darkens some pixels to improve
-    // depth perception
-    //vtkWeakPointer<vtkSSAOPass> ssaoPass = vtkSSAOPass::New();
-    //ssaoPass->SetDelegatePass(renderSteps);
-
     // Initialize the VTK renderer
 	m_vtkRenderer = vtkRenderer::New();
 	m_vtkRenderer->SetActiveCamera(m_vtkCamera);
 	m_vtkRenderer->SetBackground(colors->GetColor3d("White").GetData());
-    //m_vtkRenderer->SetPass(ssaoPass);
 
 	// VTK/Qt wedded
     this->qvtkWidget->renderWindow()->AddRenderer(m_vtkRenderer);
     this->qvtkWidget->renderWindow()->LineSmoothingOn();
     this->qvtkWidget->renderWindow()->PolygonSmoothingOn();
-
-	// Set up action signals and slots
-	//connect(this->actionExit, SIGNAL(triggered()), this, SLOT(slotExit()));
 
 	// Initialize the axes and grid actors, they start initialized by default
 	InitAxesActor();
@@ -258,7 +239,6 @@ MainTigerWindow::MainTigerWindow() :
 
     // Validate the workspaces directory, make it if it doesn't exist
     assert(ValidateWorkspacesDirectory(true));
-    //std::cout << CountWorkspaces() << std::endl;
 
     // Start a new workspace
     m_workspace = std::make_shared<Workspace>();
@@ -279,8 +259,6 @@ MainTigerWindow::~MainTigerWindow()
         m_vtkRenderer->RemoveActor(m_vtkGridActor);
         m_vtkGridActor->Delete();
     }
-
-    //m_tilePicker->Delete();
 }
 
 bool MainTigerWindow::AreAxesVisible() const
@@ -430,33 +408,6 @@ void MainTigerWindow::DeleteWorkspaceActors()
     ClearInteracePolygonsActor();
 }
 
-/*vtkIdType MainTigerWindow::GetPickedTileCellId(int x, int y) const
-{
-    assert(x >= 0 && y >= 0);
-
-    // Return no cell id if the tessellation is not visible or there is no tessellation actor
-    if (!m_viewTessellation || !m_vtkTessellationTilesActor) 
-    {
-        return -1;
-    }
-
-    // Initialize and define the cell picker. Then check what it picks
-    vtkSmartPointer<vtkCellPicker> cellPicker = vtkSmartPointer<vtkCellPicker>::New();
-    cellPicker->SetTolerance(0.0005);
-    cellPicker->Pick(x, y, 0, m_tilePicker->GetDefaultRenderer());
-
-    // Get the pointer to the collection of actors picked by the cell picker
-    //vtkProp3DCollection * pickedActors = cellPicker->GetProp3Ds();
-
-    // Check if the cell picker intersected with the tessellation actor
-    //if (pickedActors->IsItemPresent(m_vtkTessellationTilesActor)) 
-    //{
-    //    std::cout << "Click on the tessellation" << std::endl;
-    //}
-
-    return 1;
-}*/
-
 std::string MainTigerWindow::GetInterfaceTypeName(INTERFACES type) const
 {
     switch (type) 
@@ -488,9 +439,7 @@ void MainTigerWindow::InitAssemblyActors(
 
     // 
     vtkSmartPointer<vtkDoubleArray> facePointColors = vtkSmartPointer<vtkDoubleArray>::New();
-        //edgePointColors = vtkSmartPointer<vtkDoubleArray>::New();
     facePointColors->SetNumberOfValues(nAssemblyVertices);
-    //edgePointColors->SetNumberOfValues(nAssemblyVertices);
 
     vtkSmartPointer<vtkCellArray> edges = vtkSmartPointer<vtkCellArray>::New();
     edges->SetNumberOfCells(assembly->CountEdges());
@@ -519,14 +468,7 @@ void MainTigerWindow::InitAssemblyActors(
         // Get the pointer to the current block
         block = *it;
 
-        //size_t faceIndex;
-        //assert(block->Attributes().Get<size_t>(ATTRIB_FACE_INDEX, faceIndex));
-
-        //bool allNeighbors = domain->DCEL()->Faces()[block->FaceIndex()]->HasAllNeighbors();
-
         double facePointColor = block->IsEnabled() ? 1.0 : 0.2;
-        ////double edgePointColor = allNeighbors ? 0.0 : 1.0;
-        //double edgePointColor = 1.0;
 
         // Get the number of vertices of the current piece
         size_t nVertices = block->Geometry().countVertices();
@@ -544,7 +486,6 @@ void MainTigerWindow::InitAssemblyActors(
             points->InsertPoint(insertedPoints + vIdx, P);
 
             facePointColors->SetValue(insertedPoints + vIdx, facePointColor);
-            //edgePointColors->SetValue(insertedPoints + vIdx, edgePointColor);
         }
 
         // Get the number of faces of the current piece
@@ -810,7 +751,6 @@ vtkWeakPointer<vtkActor> MainTigerWindow::InitAxisAlignedBoundingBoxActor(const 
     vtkSmartPointer<vtkPolyData> linesPolyData = vtkSmartPointer<vtkPolyData>::New();
     linesPolyData->SetPoints(points);
     linesPolyData->SetLines(lines);
-    //linesPolyData->GetCellData()->SetScalars(colors);
 
     // Initialize and define the lines mapper
     vtkSmartPointer<vtkPolyDataMapper> linesMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
@@ -973,10 +913,6 @@ void MainTigerWindow::InitTileCentersActor(const std::shared_ptr<dcel::DCEL> dce
         {
             V << OCT.Vertex(vIdx);
 
-            //P[0] = C.x() + OCT.V[vIdx].x();
-            //P[1] = C.y() + OCT.V[vIdx].y();
-            //P[2] = C.z() + OCT.V[vIdx].z();
-
             P[0] = C.x() + V.x();
             P[1] = C.y() + V.y();
             P[2] = C.z() + V.z();
@@ -991,9 +927,6 @@ void MainTigerWindow::InitTileCentersActor(const std::shared_ptr<dcel::DCEL> dce
             const std::vector<size_t> & indices = OCT.face(fIdx);
 
             vtkSmartPointer<vtkTriangle> triangle = vtkSmartPointer<vtkTriangle>::New();
-            //triangle->GetPointIds()->SetId(0, octIdx + OCT.F[fIdx][0]);
-            //triangle->GetPointIds()->SetId(1, octIdx + OCT.F[fIdx][1]);
-            //triangle->GetPointIds()->SetId(2, octIdx + OCT.F[fIdx][2]);
             triangle->GetPointIds()->SetId(0, octIdx + indices[0]);
             triangle->GetPointIds()->SetId(1, octIdx + indices[1]);
             triangle->GetPointIds()->SetId(2, octIdx + indices[2]);
@@ -1021,159 +954,6 @@ void MainTigerWindow::InitTileCentersActor(const std::shared_ptr<dcel::DCEL> dce
     // Add the actor to the renderer
     m_vtkRenderer->AddActor(m_vtkTileCentersActor);
 }
-
-/*void MainTigerWindow::InitTessellationActor(const dcel::DCEL & domain)
-{
-	// If there is a tessellation actor then remove it from the renderer (if viewing) and 
-	// delete it
-	if (m_vtkTessellationActor) 
-	{
-		if (m_viewTessellation) 
-		{
-			m_vtkRenderer->RemoveActor(m_vtkTessellationActor);
-		}
-        
-        m_vtkTessellationActor->Delete();
-	}
-
-	// Initialize the object to store the points (vertices) of the tessellation
-	vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
-	points->SetNumberOfPoints(domain.vertices.size());
-
-	// Initialize an array to store the coordinates of the vertices and generate the points
-	double P[3] = { 0.0, 0.0, 0.0 };
-
-	// Traverse through the vertices of the tessellation and store their coordinates in the 
-	// points object
-	for (size_t i = 0; i < domain.vertices.size(); i += 1) 
-	{
-		// Get the reference to the coordinates of the current vertex
-		const Eigen::Vector3d & coords = domain.vertices[i]->Coords();
-
-		// Set the coordinates of the point, then insert it into the points object
-		P[0] = coords.x();
-		P[1] = coords.y();
-		P[2] = coords.z();
-		points->InsertPoint(i, P);
-
-		// Set the index dynamic attribute of the current vertex
-		domain.vertices[i]->Attributes().Set<size_t>(ATTRIB_INDEX, i);
-	}
-
-    // Initialize the object to store the lines representing the wireframe of the geometric
-    // domain
-    vtkSmartPointer<vtkCellArray> lines = vtkSmartPointer<vtkCellArray>::New();
-
-    // Initialize the visited dynamic attribute of the half edges of the tessellation as false
-    domain.SetHalfedgesAttribute(ATTRIB_VISITED, false);
-
-    // Traverse through the half edges of the tessellation and add their information to the 
-    // lines object
-    for (auto hIt = domain.halfedges.begin(); hIt != domain.halfedges.end(); ++hIt) 
-    {
-        // Get the pointer to the current half edge
-        std::shared_ptr<dcel::Halfedge> halfedge = *hIt;
-
-        // Get the visited dynamic attribute of the half edge
-        bool visited;
-        assert(halfedge->Attributes().Get<bool>(ATTRIB_VISITED, visited));
-
-        // If the current half edge has been visited then continue with the next half edge
-        if (visited) 
-        {
-            continue;
-        }
-
-        // 
-        size_t v0, v1;
-        assert(halfedge->start->Attributes().Get<size_t>(ATTRIB_INDEX, v0));
-        assert(halfedge->twin->start->Attributes().Get<size_t>(ATTRIB_INDEX, v1));
-
-        // 
-        vtkSmartPointer<vtkLine> line = vtkSmartPointer<vtkLine>::New();
-        line->GetPointIds()->SetId(0, v0);
-        line->GetPointIds()->SetId(1, v1);
-
-        // Insert the line into the lines object
-        lines->InsertNextCell(line);
-
-        // Set the current half edge and its twin as visited
-        halfedge->Attributes().Set<bool>(ATTRIB_VISITED, true);
-        halfedge->twin->Attributes().Set<bool>(ATTRIB_VISITED, true);
-    }
-
-    // Remove the visited dynamic attribute from the half edges of the tessellation
-    domain.RemoveHalfedgesAttribute(ATTRIB_VISITED);
-
-	// Initialize the object to store the triangles representing the faces of the geometric 
-	// domain. Each face is triangulated with respect of the start vertex from the incident half 
-	// edge of each face
-	vtkSmartPointer<vtkCellArray> triangles = vtkSmartPointer<vtkCellArray>::New();
-
-	// Traverse through the faces of the tessellation, generate the respective triangles and 
-	// insert them in the triangles object
-	for (auto it = domain.faces.begin(); it != domain.faces.end(); ++it) 
-	{
-		// Get the pointer to the current face
-		std::shared_ptr<dcel::Face> face = *it;
-
-		// Get the index of the start coordinate of the incident half edge of the face. This is the
-		// common vertex for all triangles that represent the face
-		size_t v0;
-		assert(face->halfedge->start->Attributes().Get<size_t>(ATTRIB_INDEX, v0));
-
-		// Get the pointer to the next half edge to the incident half edge of the face
-		std::shared_ptr<dcel::Halfedge> currentHalfedge = face->halfedge->next;
-
-		// Traverse through the half edges of the face. Stop at the previous half edge to the 
-		// incident half edge of the face
-		do 
-		{
-			// Get the indices of the end points of the current half edge
-			size_t v1, v2;
-			assert(currentHalfedge->start->Attributes().Get<size_t>(ATTRIB_INDEX, v1));
-			assert(currentHalfedge->twin->start->Attributes().Get<size_t>(ATTRIB_INDEX, v2));
-
-			// Initialize the current triangle and define the indices of its points
-			vtkSmartPointer<vtkTriangle> triangle = vtkSmartPointer<vtkTriangle>::New();
-			triangle->GetPointIds()->SetId(0, v0);
-			triangle->GetPointIds()->SetId(1, v1);
-			triangle->GetPointIds()->SetId(2, v2);
-
-			// Insert the current triangle into the triangles object
-			triangles->InsertNextCell(triangle);
-
-			// Move to the next half edge of the face
-			currentHalfedge = currentHalfedge->next;
-
-		} while (currentHalfedge != face->halfedge->previous);
-	}
-
-	// Remove the index dynamic attribute from the vertices of the tessellation
-	domain.RemoveVerticesAttribute(ATTRIB_INDEX);
-
-	// Initialize and define the polydata
-	vtkSmartPointer<vtkPolyData> polydata = vtkSmartPointer<vtkPolyData>::New();
-	polydata->SetPoints(points);
-	polydata->SetPolys(triangles);
-    polydata->SetLines(lines);
-
-	// Initialize and define the mapper
-	vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-	mapper->SetInputData(polydata);
-
-	// Initialize and define the tessellation actor
-	m_vtkTessellationActor = vtkActor::New();
-	m_vtkTessellationActor->SetMapper(mapper);
-    m_vtkTessellationActor->GetProperty()->BackfaceCullingOn();
-    m_vtkTessellationActor->GetProperty()->SetLineWidth(4);
-
-	// Add the tessellation actor to the renderer (if viewing)
-	if (m_viewTessellation) 
-	{
-		m_vtkRenderer->AddActor(m_vtkTessellationActor);
-	}
-}*/
 
 void MainTigerWindow::InitTessellationActors(const VF & vf)
 {
@@ -1294,7 +1074,6 @@ void MainTigerWindow::InitTessellationActors(const VF & vf)
     vtkSmartPointer<vtkPolyData> facesPolydata = vtkSmartPointer<vtkPolyData>::New();
     facesPolydata->SetPoints(points);
     facesPolydata->SetPolys(triangles);
-    //polydata->SetLines(lines);
 
     // Initialize and define the mapper
     vtkSmartPointer<vtkPolyDataMapper> facesMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
@@ -1327,9 +1106,6 @@ void MainTigerWindow::InitGridActor(size_t width, size_t height, size_t widthSeg
 
 	// 
 	size_t nVerticalLines = widthSegments + 1;
-
-	// Calculate the number of lines required for drawing the grid
-	//size_t nLines = (widthSegments + 1) + (heightSegments + 1);
 
 	// 
 	double halfWidth = width / 2.0;
@@ -1577,9 +1353,6 @@ void MainTigerWindow::InitInterfacePolygonsActor(
             continue;
         }
 
-        // Get the number of vertices of the geometry
-        //size_t nVertices = intf->Geometry().vertices.size();
-
         // 
         bool intfInEquilibrium = false;
 
@@ -1599,13 +1372,9 @@ void MainTigerWindow::InitInterfacePolygonsActor(
 
         size_t nVertices = intf->countVertices();
 
-        // Get the pointer to the incident half edge of the face of the interface polygon
-        //std::shared_ptr<dcel::Halfedge> halfedge = intf->Geometry().faces[0]->halfedge;
-
         for (size_t vIdx = 0; vIdx < nVertices; vIdx += 1)
         {
             // Get the reference to the coordinates of the current vertex
-            //const Eigen::Vector3d & C = halfedge->start->Coords();
             C << intf->Vertex(vIdx);
 
             // Store the coordinate values of the vertex
@@ -1700,33 +1469,17 @@ void MainTigerWindow::InitInterfacePolygonsActor(
     // 
     double min = 0, max = 0;
     results->GetMinMaxForces((EquilibriumAnalysis::Force::TYPE)type, min, max);
-    //results->GetCTMinMaxForces(min, max);
     
     double step = (max - min) / 4.0;
 
     // 
     vtkSmartPointer<vtkColorTransferFunction> colorFunction = vtkSmartPointer<vtkColorTransferFunction>::New();
-    //colorFunction->AddRGBPoint(-1.00, 1.0, 1.0, 1.0);
-    //colorFunction->AddRGBPoint( 0.00, 0.0, 0.0, 1.0);
-    //colorFunction->AddRGBPoint( 0.25, 0.0, 1.0, 1.0);
-    //colorFunction->AddRGBPoint( 0.50, 0.0, 1.0, 0.0);
-    //colorFunction->AddRGBPoint( 0.75, 1.0, 1.0, 0.0);
-    //colorFunction->AddRGBPoint( 1.00, 1.0, 0.0, 0.0);
     colorFunction->AddRGBPoint(-1e-8, 0.5, 0.5, 0.5);
     colorFunction->AddRGBPoint( min, 0.0, 0.0, 1.0);
     colorFunction->AddRGBPoint( min + step, 0.0, 1.0, 1.0);
     colorFunction->AddRGBPoint( (min + max) / 2.0, 0.0, 1.0, 0.0);
     colorFunction->AddRGBPoint( max - step, 1.0, 1.0, 0.0);
     colorFunction->AddRGBPoint( max, 1.0, 0.0, 0.0);
-
-
-
-    //colorFunction->AddRGBPoint(-1.0,                             1.0, 1.0, 1.0);
-    //colorFunction->AddRGBPoint(result.minTension,                0.0, 0.0, 1.0);
-    //colorFunction->AddRGBPoint(result.minTension + step,         1.0, 1.0, 0.0);
-    //colorFunction->AddRGBPoint(result.minTension + (2.0 * step), 0.0, 1.0, 0.0);
-    //colorFunction->AddRGBPoint(result.minTension + (3.0 * step), 0.0, 1.0, 1.0);
-    //colorFunction->AddRGBPoint(result.maxTension,                1.0, 0.0, 0.0);
     colorFunction->Build();
 
     // 
@@ -1777,7 +1530,6 @@ void MainTigerWindow::SetInterfacePolygons(bool render)
         if (render)
         {
             qvtkWidget->renderWindow()->Render();
-            //qvtkWidget->renderWindow()->Render();
         }
     }
     else
@@ -1940,7 +1692,6 @@ void MainTigerWindow::on_actionNewBendedSquareGeometry_triggered()
 
     // Call Render to show changes
     qvtkWidget->renderWindow()->Render();
-    //qvtkWidget->renderWindow()->Render();
 }
 
 void MainTigerWindow::on_actionNewConeGeometry_triggered()
@@ -1950,8 +1701,6 @@ void MainTigerWindow::on_actionNewConeGeometry_triggered()
 
 void MainTigerWindow::on_actionNewCyclideGeometry_triggered()
 {
-    //QMessageBox::information(this, APP_TITLE, "void on_actionNewCyclideGeometry_triggered");
-
     CyclideParametersDialog dialog(this);
 
     // Exit the function if the user canceled the dialog
@@ -1966,13 +1715,6 @@ void MainTigerWindow::on_actionNewCyclideGeometry_triggered()
     double d = dialog.getD();
     size_t Rs = dialog.getMajorRadialSegments();
     size_t rs = dialog.getMinorRadialSegments();
-
-    //std::cout << "a = " << a << std::endl;
-    //std::cout << "b = " << b << std::endl;
-    //std::cout << "c = " << c << std::endl;
-    //std::cout << "d = " << d << std::endl;
-    //std::cout << "Rs = " << Rs<< std::endl;
-    //std::cout << "rs = " << rs << std::endl;
 
     // Clear the workspace
     ClearWorkspace();
@@ -2201,7 +1943,6 @@ void MainTigerWindow::on_actionNewObjFileGeometry_triggered()
         double y = objAttributes.vertices[(i * 3) + 1];
         double z = objAttributes.vertices[(i * 3) + 2];
 
-        //vf.V[i] << x, y, z;
         vf.addVertex(x, y, z);
     }
 
@@ -2215,13 +1956,11 @@ void MainTigerWindow::on_actionNewObjFileGeometry_triggered()
         size_t nFaceVertices = objShapes[0].mesh.num_face_vertices[i];
 
         // 
-        //vf.F[i].resize(nFaceVertices);
         std::vector<size_t> indices(nFaceVertices);
 
         // 
         for (size_t j = 0; j < nFaceVertices; j += 1) 
         {
-            //vf.F[i][j] = objShapes[0].mesh.indices[indexOffset + j].vertex_index;
             indices[j] = objShapes[0].mesh.indices[indexOffset + j].vertex_index;
         }
 
@@ -2385,6 +2124,7 @@ void MainTigerWindow::on_actionNewRectangleGeometry_triggered()
 
 void MainTigerWindow::on_actionCameraBack_triggered() 
 {
+    QMessageBox::information(this, APP_TITLE, "on_actionCameraBack_triggered");
 }
 
 void MainTigerWindow::on_actionCameraBottom_triggered()
@@ -2409,10 +2149,7 @@ void MainTigerWindow::on_actionCameraManual_triggered()
 
 void MainTigerWindow::on_actionCameraReset_triggered()
 {
-	// Reset the eye transformation matrix by setting it as an identity matrix
-	//m_vtkCamera->GetViewTransformMatrix()->Identity();
-
-    // Reset the location and focus of the camera
+	// Reset the location and focus of the camera
 	m_vtkCamera->SetPosition(3, 3, 3);
 	m_vtkCamera->SetFocalPoint(0, 0, 0);
 
@@ -2646,11 +2383,7 @@ void MainTigerWindow::on_actionEditDualTessellation_triggered()
     dcel::DCEL geom(m_workspace->GetTessellation()->Geometry());
     VF dual = geom.Dual();
 
-    // Initialize the vertex coordinates and vertex indices of the dual of the tessellation
-    //VF dual = m_workspace->GetTessellation()->Geometry().Dual();
-
     // If the tessellation has no dual then show a warning message and exit the function
-    //if (!m_workspace->GetTessellation()->Geometry().Dual(dual)) 
     if (dual.countVertices() == 0 || dual.countFaces() == 0)
     {
         QMessageBox::warning(this, "Calculation Incompleted", "tessellation has no dual.");
@@ -2813,56 +2546,6 @@ void MainTigerWindow::on_actionEditScaleTessellation_triggered()
     qvtkWidget->renderWindow()->Render();
 }
 
-/*void MainTigerWindow::on_actionEditTruncatePieces_triggered()
-{
-    // Initialize the object to store the checking requirements result
-    Message msg;
-
-    // Check the requirements for truncating the pieces. Show a warning message if a requirement is
-    // missing
-    if (!m_workspace->CheckTruncatePiecesRequirements(msg))
-    {
-        QMessageBox::warning(this, APP_TITLE, msg.getText());
-        return;
-    }
-
-    // Open the face truncate pieces parameters dialog
-    TruncatePiecesParametersDialog dialog(this);
-
-    // Exit the function if the user canceled the dialog
-    if (dialog.exec() == QDialog::Rejected)
-    {
-        return;
-    }
-
-    // Get the truncation parameter value
-    double intrados = dialog.GetIntrados();
-    double extrados = dialog.GetExtrados();
-
-    // Validate the values Are correct
-    if (intrados == 0.0 || extrados == 0.0) 
-    {
-        QMessageBox::warning(this, "Invalid Value", "Values cannot be zero.");
-        return;
-    }
-
-    // Clear the actors for rendering the assembly and the interface polygons
-    ClearAssemblyActor();
-    ClearInteracePolygonsActor();
-
-    // Truncate the pieces and set them as the assembly
-    m_workspace->SetAssemblyUsingTruncatedPieces(intrados, extrados);
-
-    // Initialize the actor for rendering the assembly
-    InitAssemblyActor(m_workspace->GetAssembly());
-    
-    // Set the interface polygons
-    SetInterfacePolygons(false);
-
-    // Call Render to show changes
-    qvtkWidget->renderWindow()->Render();
-}*/
-
 void MainTigerWindow::on_actionNewSquareGeometry_triggered()
 {
 	// Open the dialog
@@ -2968,13 +2651,6 @@ void MainTigerWindow::on_actionNewTorusGeometry_triggered()
     double majorRadius = dialog.getMajorRadius();
     size_t minorSegments = dialog.getMinorRadialSegments();
     double minorRadius = dialog.getMinorRadius();
-
-    // 
-    //const Eigen::Vector3d C(0.0, 0.0, 0.0);
-
-    // 
-    //const Eigen::Vector3d K = (axis == "X") ? Eigen::Vector3d(1.0, 0.0, 0.0) :
-    //    ((axis == "Y") ? Eigen::Vector3d(0.0, 1.0, 0.0) : Eigen::Vector3d(0.0, 0.0, 1.0));
 
     // 
     VF vf = geometries::Torus(majorRadius, minorRadius, majorSegments, minorSegments);
@@ -3148,7 +2824,6 @@ void MainTigerWindow::on_actionSaveObjAssemblyFilePerBlock_triggered()
         std::string filepath = filedir.toStdString() + "/block_" + std::to_string(blockIdx++) + ".obj";
 
         block->Geometry().WriteObjFile(filepath);
-        // std::cout << filepath << " saved" << std::endl;
     }
 
     QMessageBox::information(this, APP_TITLE, "Files saved in " + filedir + " successfully.");
@@ -3182,8 +2857,6 @@ void MainTigerWindow::on_actionSaveObjTessellationFile_triggered()
 
 void MainTigerWindow::on_actionSaveObjWorkspaceFile_triggered()
 {
-    //QMessageBox::information(this, APP_TITLE, "on_actionSaveObjWorkspaceFile_triggered");
-
     // Get the selected filename and trim it
     QString filename = QFileDialog::getSaveFileName(
         this, tr("Save OBJ File"), "workspace.obj", tr("WaveFront (*.obj)")).trimmed();
@@ -3193,9 +2866,6 @@ void MainTigerWindow::on_actionSaveObjWorkspaceFile_triggered()
     {
         return;
     }
-
-    // Remove the extension from the filename
-    //TODO
 
     // Initialize the OBJ exporter, get the content from the scene, and save it in a OBJ file
     vtkSmartPointer<vtkOBJExporter> exporter = vtkSmartPointer<vtkOBJExporter>::New();
@@ -3280,8 +2950,6 @@ void MainTigerWindow::on_actionSaveVrmlTessellationFile_triggered()
 
 void MainTigerWindow::on_actionSaveVrmlWorkspaceFile_triggered()
 {
-    //QMessageBox::information(this, APP_TITLE, "on_actionSaveVrmlWorkspaceFile_triggered");
-
     // Get the selected filename and trim it
     QString filename = QFileDialog::getSaveFileName(
         this, tr("Save VRML File"), "workspace.wrl", tr("VRML Format (*.wrl)")).trimmed();
@@ -3478,10 +3146,6 @@ void MainTigerWindow::on_actionTicFixBottomBlocks_triggered()
     // Clear the actors for rendering the assembly and the inteface polygons
     ClearAssemblyActors();
     ClearInteracePolygonsActor();
-
-    // Generate the TIC using the Height-Bisection method. Then, set it as the assembly in the 
-    // workspace
-    //m_workspace->SetAssemblyUsingHeightBisectionMethod(topHeight, boundary);
 
     // Initialize the actors for rendering the assembly
     InitAssemblyActors(m_workspace->GetTessellation(), m_workspace->GetAssembly());
@@ -3926,7 +3590,6 @@ void MainTigerWindow::on_actionViewHideAll_triggered()
     {
         // Remove actor
         m_viewSectionHeights = false;
-        //this->actionViewSectionHeights->setChecked(false);
     }
 
     // Call Render to show changes
@@ -3995,23 +3658,6 @@ void MainTigerWindow::on_actionViewTensionForces_triggered()
     }
 }
 
-/*void MainTigerWindow::on_actionViewInterfacePolygons_triggered()
-{
-    m_viewInterfacePolygons = this->actionViewInterfacePolygons->isChecked();
-
-    if (m_vtkInterfacePolygonsActor) 
-    {
-        m_vtkInterfacePolygonsActor->SetVisibility(m_viewInterfacePolygons);
-    }
-    
-    if (m_vtkInterfacePolygonsBarActor) 
-    {
-        m_vtkInterfacePolygonsBarActor->SetVisibility(m_viewInterfacePolygons);
-    }
-    
-    qvtkWidget->renderWindow()->Render();
-}*/
-
 void MainTigerWindow::on_actionViewShowAll_triggered()
 {
     if (!m_viewAssemblyGeometry)
@@ -4057,7 +3703,6 @@ void MainTigerWindow::on_actionViewShowAll_triggered()
     if (!m_viewEdgeRotatedVectors)
     {
         m_viewEdgeRotatedVectors = true;
-        //this->actionViewEdgeRotatedVectors->setChecked(true);
     }
 
     if (!m_viewTileCenters)
@@ -4146,7 +3791,6 @@ void MainTigerWindow::on_actionViewShowAll_triggered()
     if (!m_viewSectionHeights)
     {
         m_viewSectionHeights = true;
-        //this->actionViewSectionHeights->setChecked(true);
     }
 
     qvtkWidget->renderWindow()->Render();
@@ -4162,73 +3806,4 @@ bool MainTigerWindow::ValidateWorkspacesDirectory(bool mkdir) const
     QDir dir(m_workspacesDir);
 
     return dir.exists() ? true : (mkdir ? dir.mkdir(m_workspacesDir) : false);
-}
-
-TilePickerStyle::TilePickerStyle() : m_tigerWindow(nullptr)
-{
-}
-
-TilePickerStyle::~TilePickerStyle()
-{
-    m_tigerWindow = nullptr;
-}
-
-void TilePickerStyle::OnLeftButtonDown()
-{
-    assert(m_tigerWindow);
-
-    // Get the location of the click in window coordinates
-    int* position = this->GetInteractor()->GetEventPosition();
-    std::cout << "Left click at (" << position[0] << ", " << position[1] << ")" << std::endl;
-
-    //vtkIdType id = m_tigerWindow->GetPickedTileCellId(position[0], position[1]);
-    //std::cout << "ID = " << id << std::endl;
-
-    // Initialize the cell picker and define it
-    //vtkSmartPointer<vtkCellPicker> picker = vtkSmartPointer<vtkCellPicker>::New();
-    //picker->SetTolerance(0.0005);
-
-    // 
-    //picker->Pick(position[0], position[1], 0, this->GetDefaultRenderer());
-
-    //double* scenePosition = picker->GetPickPosition();
-    //std::cout << "Picked cell " << picker->GetCellId() << std::endl;
-
-    //if (picker->GetCellId() != -1) 
-    //{
-    //    std::cout << "Pick position is " << scenePosition[0] << ", " << scenePosition[1] << ", " << scenePosition[2] << std::endl;
-    //}
-
-    // Forward the event
-    vtkInteractorStyleTrackballCamera::OnLeftButtonDown();
-}
-
-void TilePickerStyle::OnRightButtonDown()
-{
-    // Get the location of the click in window coordinates
-    int* position = this->GetInteractor()->GetEventPosition();
-    std::cout << "Right click at (" << position[0] << ", " << position[1] << ")" << std::endl;
-
-    // Initialize the cell picker and define it
-    //vtkSmartPointer<vtkCellPicker> picker = vtkSmartPointer<vtkCellPicker>::New();
-    //picker->SetTolerance(0.0005);
-
-    // 
-    //picker->Pick(position[0], position[1], 0, this->GetDefaultRenderer());
-
-    //double* scenePosition = picker->GetPickPosition();
-    //std::cout << "Picked cell " << picker->GetCellId() << std::endl;
-
-    //if (picker->GetCellId() != -1) 
-    //{
-    //    std::cout << "Pick position is " << scenePosition[0] << ", " << scenePosition[1] << ", " << scenePosition[2] << std::endl;
-    //}
-
-    // Forward the event
-    vtkInteractorStyleTrackballCamera::OnRightButtonDown();
-}
-
-void TilePickerStyle::SetTigerWindow(MainTigerWindow * tigerWindow)
-{
-    m_tigerWindow = tigerWindow;
 }
