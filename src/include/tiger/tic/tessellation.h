@@ -1,5 +1,5 @@
-#ifndef _GEOMETRIC_DOMAIN_H_
-#define _GEOMETRIC_DOMAIN_H_
+#ifndef _TESSELLATION_H_
+#define _TESSELLATION_H_
 
 #pragma once
 

@@ -1,19 +1,20 @@
-#ifndef _MAINTIGERWINDOW_H_
-#define _MAINTIGERWINDOW_H_
+#ifndef _MAIN_TIGER_WINDOW_H_
+#define _MAIN_TIGER_WINDOW_H_
 
 #pragma once
 
 #include <QMainWindow>
 #include <vtkActor.h>
 #include <vtkCamera.h>
+#include <vtkFollower.h>
 #include <vtkWeakPointer.h>
 #include <vtkScalarBarActor.h>
 #include <tiger/workspace/workspace.h>
 #include "ui_MainTigerWindow.h"
 
 //
-// The class representing the main TIGER Qt VTK app window. This class handles both Qt UI
-// and VTK elements.
+// The class representing the main TIGER Qt VTK app window. This class handles 
+// both Qt UI and VTK elements.
 //
 class MainTigerWindow : public QMainWindow, private Ui::MainTigerWindow
 {
@@ -32,6 +33,9 @@ private:
 
     // Indicates if the blocks bounding boxes of the assembly are visible
     bool m_viewAssemblyBlocksBoundingBoxes;
+
+    // Indicates if the indices of the blocks are visible
+    bool m_viewAssemblyBlockIndices;
 
 	// Indicates if the geometry of the assembly is visible
 	bool m_viewAssemblyGeometry;
@@ -66,6 +70,9 @@ private:
     // The actor to render the bounding boxes of the blocks of the assembly
     vtkWeakPointer<vtkActor> m_vtkAssemblyBlocksBoundingBoxesActor;
 
+    // The vector with the actors to render the block indices of the assembly
+    std::vector<vtkWeakPointer<vtkFollower>> m_vtkAssemblyBlockIndicesActor;
+
     // The actor to render the edges of the assembly (blocks)
     vtkWeakPointer<vtkActor> m_vtkAssemblyEdgesActor;
 
@@ -87,7 +94,8 @@ private:
     // The actor to render the interface polygons
     vtkWeakPointer<vtkActor> m_vtkInterfacePolygonsActor;
 
-    // The actor to render the scalar bar for the force magnitudes on the interface polygons
+    // The actor to render the scalar bar for the force magnitudes on the 
+    // interface polygons
     vtkWeakPointer<vtkScalarBarActor> m_vtkInterfacePolygonsBarActor;
 
     // The actor to render the bounding box of the tessellation
@@ -166,20 +174,23 @@ private:
     void AskViewInterfacePolygons();
 
     //
-    // Asks whether to show the tessellation geometryor not. If yes then it visualizes the 
-    // tessellation geometry actor (if any). This function does not call the render function.
+    // Asks whether to show the tessellation geometryor not. If yes then it 
+    // visualizes the tessellation geometry actor (if any). This function does 
+    // not call the render function.
     //
     void AskViewTessellationGeometry();
 
     //
-    // Clears the actors to render the assembly. There are two actors: one for the faces and one for 
-    // the edges.
+    // Clears the actors to render the assembly. There are three actors: 
+    // an actor for the faces
+    // an actor for the edges
+    // an actor for the block indices
     //
     void ClearAssemblyActors();
 
     //
-    // Clears the actors to render the tessellation. There are two actors: one for the tiles and one 
-    // for the edges.
+    // Clears the actors to render the tessellation. There are two actors: one 
+    // for the tiles and one for the edges.
     //
     void ClearTessellationActors();
 
@@ -191,7 +202,8 @@ private:
 public:
 
 	//
-	// Clears the content of the workspace, including the actors associated to its elements.
+	// Clears the content of the workspace, including the actors associated to its
+    // elements.
 	//
 	void ClearWorkspace();
 
@@ -216,64 +228,80 @@ private:
     std::string GetInterfaceTypeName(INTERFACES type) const;
 
     //
-    // Initializes the actors to render the information of the assembly. NOTE: Call this function only
-    // after adding the renderer to the VTK render window of the Qt VTK widget.
-    // @param const std::shared_ptr<Assembly> assembly The pointer to the assembly.
+    // Initializes the actors to render the information of the assembly. 
+    // NOTE: Call this function only after adding the renderer to the VTK 
+    // render window of the Qt VTK widget.
+    // @param const std::shared_ptr<Assembly> assembly The pointer to the 
+    // assembly.
     //
     void InitAssemblyActors(
         const std::shared_ptr<Tessellation> tessellation, 
         const std::shared_ptr<Assembly> assembly);
 
+    // 
+    // 
+    // 
+    void InitAssemblyBlockIndicesActor();
+
 	//
-	// Initializes the actor to render the axes vectors. Reference axes point along X, Y and Z 
-    // directions. NOTE: Call this function only after adding the renderer to the VTK render window of
-	// the Qt VTK widget.
+	// Initializes the actor to render the axes vectors. Reference axes point 
+    // along X, Y and Z directions. NOTE: Call this function only after adding 
+    // the renderer to the VTK render window of the Qt VTK widget.
 	//
 	void InitAxesActor();
 
     //
-    // Initialized a vtkActor with the edges of the axis aligned bounding box of a geometry.
+    // Initialized a vtkActor with the edges of the axis aligned bounding box 
+    // of a geometry.
     // @param VF & vf The reference to the geometry.
     // @return vtkWeakPointer<vtkActor> The pointer to the actor.
     //
     vtkWeakPointer<vtkActor> InitAxisAlignedBoundingBoxActor(const VF & vf);
 
     //
-    // Initializes the actor to render the centers of the tiles of the tessellation. Each tile center 
-    // is represented using an octahedron. NOTE: Call this function only after adding the renderer to 
-    // the VTK render window of the Qt VTK widget.
-    // @param const dcel::DCEL & domain The reference to the geometry of the tessellation. The tiles 
-    // must have the ATTRIB_CENTER dynamic attribute.
+    // Initializes the actor to render the centers of the tiles of the 
+    // tessellation. Each tile center is represented using an octahedron. 
+    // NOTE: Call this function only after adding the renderer to the VTK 
+    // render window of the Qt VTK widget.
+    // @param const dcel::DCEL & domain The reference to the geometry of the 
+    // tessellation. The tiles must have the ATTRIB_CENTER dynamic attribute.
     // @param double radius The radius of the octahedra.
     //
     void InitTileCentersActor(const std::shared_ptr<dcel::DCEL> dcel, double radius = 0.1);
 
     //
-    // Initializes the actor to render the edge directions in the tessellation. NOTE: Call this 
-    // function only after adding the renderer to the VTK render window of the Qt VTK widget.
-	// @param const dcel::DCEL & domain The reference to the geometry of the tessellation.
-    // @param double length The length of the lines representing the edge directions.
+    // Initializes the actor to render the edge directions in the tessellation. 
+    // NOTE: Call this function only after adding the renderer to the VTK 
+    // render window of the Qt VTK widget.
+	// @param const dcel::DCEL & domain The reference to the geometry of the 
+    // tessellation.
+    // @param double length The length of the lines representing the edge 
+    // directions.
     //
     void InitEdgeDirectionsActor(const std::shared_ptr<dcel::DCEL> dcel, double length = 0.5);
 
 	//
-	// Initializes the actor to render the tessellation. NOTE: Call this function only after 
-	// adding the renderer to the VTK render window of the Qt VTK widget.
-	// @param const dcel::DCEL & domain The reference to the geometry of the tessellation.
+	// Initializes the actor to render the tessellation. NOTE: Call this function 
+    // only after adding the renderer to the VTK render window of the Qt VTK 
+    // widget.
+	// @param const dcel::DCEL & domain The reference to the geometry of the 
+    // tessellation.
 	//
 	//void InitTessellationActor(const dcel::DCEL & domain);
 
     //
-    // Initializes the actors to render the content of the tessellation. NOTE: Call this function only
-    // after adding the renderer to the VTK render window of the Qt VTK widget.
+    // Initializes the actors to render the content of the tessellation. 
+    // NOTE: Call this function only after adding the renderer to the VTK 
+    // render window of the Qt VTK widget.
     // @param const VF & vf The reference to the geometry of the tessellation.
     //
     void InitTessellationActors(const VF & vf);
 
 	//
-	// Initializes the actor to render the reference grid. Reference grid lies on the XY plane. 
-	// NOTE: Call this function only after adding the renderer to the VTK render window of the Qt VTK 
-	// widget.
+	// Initializes the actor to render the reference grid. Reference grid lies 
+    // on the XY plane. 
+	// NOTE: Call this function only after adding the renderer to the VTK 
+    // render window of the Qt VTK widget.
 	// @param size_t width
 	// @param size_t height
 	// @param size_t widthSegments
@@ -286,9 +314,11 @@ private:
 		size_t heightSegments = 20);
 
     //
-    // Initializes the actor to render the interface polygons. NOTE: Call this function only after
-    // adding the renderer to the VTK render window of the Qt VTK widget.
-    // @param const std::shared_ptr<InterfacePolygons> intfs The pointer to the interface polygons.
+    // Initializes the actor to render the interface polygons. NOTE: Call this 
+    // function only after adding the renderer to the VTK render window of the 
+    // Qt VTK widget.
+    // @param const std::shared_ptr<InterfacePolygons> intfs The pointer to the
+    // interface polygons.
     //
     void InitInterfacePolygonsActor(const std::shared_ptr<InterfacePolygons> intfs);
 
@@ -302,20 +332,34 @@ private:
         const std::shared_ptr<EquilibriumAnalysis::Result> results, 
         INTERFACES type);
 
+protected:
+
+    //
+    //
+    //void keyPressEvent(QKeyEvent* event);
+
+    //
+    //
+    //void keyReleaseEvent(QKeyEvent* event);
+
+private:
+
+
     //
     //
     void SetInterfacePolygons(bool render = false);
 
     //
-    // Adds the interface polygons actor (if any) to the renderer and indicates the interfaces are 
-    // being shown. This function does not call the render function.
+    // Adds the interface polygons actor (if any) to the renderer and indicates
+    // the interfaces are being shown. This function does not call the render 
+    // function.
     // @param INTERFACES type
     //
     void ViewInterfacePolygons(INTERFACES type);
 
     //
-    // Shows the tessellation geometry actor (if any). This function does not call the render 
-    // function.
+    // Shows the tessellation geometry actor (if any). This function does not 
+    // call the render function.
     //
     void ViewTessellationGeometry();
 
@@ -342,7 +386,7 @@ public slots:
     void on_actionCameraManual_triggered();
 
     //
-	//Slot function executed when user clicks the camera reset menu item.
+	// Slot function called when the user clicks the camera reset menu item.
 	//
 	void on_actionCameraReset_triggered();
 
@@ -355,17 +399,20 @@ public slots:
     void on_actionCameraTop_triggered();
 
     //
-    //Slot function executed when user clicks the tessellation dual menu item.
+    // Slot function called when the user clicks the tessellation dual menu 
+    // item.
     //
     void on_actionEditDualTessellation_triggered();
 
     //
-    //Slot function executed when the user clicks the edit assembly adaptive tile offset menu item.
+    // Slot function executed when the user clicks the edit assembly adaptive 
+    // tile offset menu item.
     //
     void on_actionEditAssemblyClipAdaptiveTileOffset_triggered();
 
     //
-    // Slot function executed when user clicks the edit assembly clip tile offset menu item.
+    // Slot function called when the user clicks the edit assembly clip tile 
+    // offset menu item.
     //
     void on_actionEditAssemblyClipTileOffset_triggered();
 
@@ -374,17 +421,20 @@ public slots:
     void on_actionEditFlipTessellation_triggered();
 
     //
-    //Slot function executed when user clicks the center to origin menu item.
+    // Slot function called when the user clicks the center to origin menu 
+    // item.
     //
     void on_actionEditTessellationCentroidToOrigin_triggered();
 
     //
-    //Slot function executed when user clicks the face subdivision menu item.
+    // Slot function called when the user clicks the face subdivision menu 
+    // item.
     //
     void on_actionEditTileSubdivision_triggered();
 
     //
-    //Slot function executed when user clicks the normalize tessellation menu item.
+    // Slot function called when the user clicks the normalize tessellation 
+    // menu item.
     //
     void on_actionEditNormalizeVertices_triggered();
 
@@ -393,12 +443,14 @@ public slots:
     void on_actionEditRestoreAssembly_triggered();
 
     //
-    //Slot function executed when user clicks the rotate tessellation menu item.
+    // Slot function called when the user clicks the rotate tessellation menu 
+    // item.
     //
     void on_actionEditRotateTessellation_triggered();
 
     //
-    //Slot function executed when user clicks the scale tessellation menu item.
+    // Slot function called when the user clicks the scale tessellation menu 
+    // item.
     //
     void on_actionEditScaleTessellation_triggered();
 
@@ -407,7 +459,8 @@ public slots:
     void on_actionNewArchimedeanSolidGeometry_triggered();
 
     //
-    // Slot function executed when user clicks the new bended square geometry menu item.
+    // Slot function called when the user clicks the new bended square geometry
+    // menu item.
     //
     void on_actionNewBendedSquareGeometry_triggered();
 
@@ -415,64 +468,74 @@ public slots:
     //
     void on_actionNewConeGeometry_triggered();
 
-    /// <summary>
-    /// 
-    /// </summary>
+    //
+    //
+    //
     void on_actionNewCyclideGeometry_triggered();
 
     //
-    // Slot function executed when user clicks the new cylinder geometry menu item.
+    // Slot function called when the user clicks the new cylinder geometry menu
+    // item.
     //
     void on_actionNewCylinderGeometry_triggered();
 
     //
-    // Slot function executed when user clicks the new equiliateral triangle geometry menu item.
+    // Slot function called when the user clicks the new equiliateral triangle 
+    // geometry menu item.
     //
     void on_actionNewEquilateralTriangleGeometry_triggered();
 
     //
-    // Slot function executed when the user clicks the new N-sided regular polygon geometry menu item.
+    // Slot function executed when the user clicks the new N-sided regular 
+    // polygon geometry menu item.
     //
     void on_actionNewNsidedRegularPolygonGeometry_triggered();
 
     //
-    // Slot function executed when the user clicks the new tessellation from an OBJ file menu 
-    // item.
+    // Slot function executed when the user clicks the new tessellation from an
+    // OBJ file menu item.
     //
     void on_actionNewObjFileGeometry_triggered();
 
     //
-    // Slot function executed when user clicks the new elliptic paraboloid menu item.
+    // Slot function called when the user clicks the new elliptic paraboloid 
+    // menu item.
     //
     void on_actionNewParaboloidGeometry_triggered();
 
     //
-    // Slot function executed when user clicks the new Platonic solid geometry menu item.
+    // Slot function called when the user clicks the new Platonic solid 
+    // geometry menu item.
     //
     void on_actionNewPlatonicSolidGeometry_triggered();
 
     //
-    // Slot function executed when user clicks the new Rectangle geometry menu.
+    // Slot function called when the user clicks the new Rectangle geometry 
+    // menu.
     //
     void on_actionNewRectangleGeometry_triggered();
 
 	//
-    // Slot function executed when user clicks the new square geometry menu item.
+    // Slot function called when the user clicks the new square geometry menu 
+    // item.
 	//
 	void on_actionNewSquareGeometry_triggered();
 
     //
-    // Slot function executed when user clicks the new square grid geometry menu item.
+    // Slot function called when the user clicks the new square grid geometry 
+    // menu item.
     //
     void on_actionNewSquareGridGeometry_triggered();
 
     //
-    // Slot function executed when user clicks the new torus geometry menu item.
+    // Slot function called when the user clicks the new torus geometry menu 
+    // item.
     //
     void on_actionNewTorusGeometry_triggered();
 
     //
-    // Slot function executed when user clicks the new truncated cone geometry menu item.
+    // Slot function called when the user clicks the new truncated cone 
+    // geometry menu item.
     //
     void on_actionNewTruncatedConeGeometry_triggered();
 
@@ -528,49 +591,85 @@ public slots:
     //
     void on_actionSaveVrmlWorkspaceFile_triggered();
 
-    //
-    //
+    // 
+    // 
+    // 
+    void on_actionTicAddBlockForceTorqueLoads_triggered();
+
+    // 
+    // 
+    // 
+    void on_actionTicAddBlockWeightLoads_triggered();
+
+    // 
+    // 
+    // 
     void on_actionTicCalculateInterfaces_triggered();
 
-    //
-    //
+    // 
+    // 
+    // 
     void on_actionTicCalculateOverlapping_triggered();
 
-    //
-    // Slot function executed when the user clicks the Equilibrium Analysis menu item.
-    //
-    void on_actionTicEquilibriumAnalysis_triggered();
+    // 
+    // 
+    // 
+    //void on_actionTicEnableDisableAllBlocks_triggered();
 
-    //
-    //
+    // 
+    // Slot function called when the user clicks the enable/disable specific 
+    // blocks menu item.
+    // 
+    void on_actionTicEnableDisableSpecificBlocks_triggered();
+
+    // 
+    // 
+    // 
     void on_actionTicFixBottomBlocks_triggered();
 
     //
-    // Slot function executed when user clicks the TIC Height-Bisection method menu ite.
+    // Slot function called when the user clicks the TIC Height-Bisection 
+    // method menu item.
     //
     void on_actionTicHeightBisectionMethod_triggered();
 
     //
-    // Slot function executed when user clicks the TIC set center and direction menu item.
+    // Slot function called when the user clicks the TIC set center and 
+    // direction menu item.
     //
     void on_actionTicSetCentersAndDirections_triggered();
 
     //
-    // Slot function executed when user clicks the TIC Tilting Angle method menu item.
+    // Slot function executed when the user clicks the Equilibrium Analysis 
+    // menu item.
+    //
+    void on_actionTicStaticEquilibriumAnalysis_triggered();
+
+    //
+    // Slot function called when the user clicks the TIC Tilting Angle method 
+    // menu item.
     //
     void on_actionTicTiltingAngleMethod_triggered();
+
+    // 
+    // Slot function called when the user toggles the visualization of the 
+    // block indices.
+    // 
+    void on_actionViewAssemblyBlockIndices_triggered();
 
     //
     //
     void on_actionViewAssemblyBoundingBoxes_triggered();
 
 	//
-	// Slot function executed when user toggles the visualization of the assembly.
+	// Slot function called when the user toggles the visualization of the 
+    // assembly.
 	//
 	void on_actionViewAssemblyGeometry_triggered();
 
 	//
-	// Slot function executed when user toggles the visualization of the (X, Y, Z) axes.
+	// Slot function called when the user toggles the visualization of the 
+    // (X, Y, Z) axes.
 	//
 	void on_actionViewAxes_triggered();
 
@@ -579,17 +678,19 @@ public slots:
     void on_actionViewCompressionForces_triggered();
 
 	//
-	// Slot function executed when user toggles the visualization of the edge directions.
+	// Slot function called when the user toggles the visualization of the edge
+    // directions.
 	//
 	void on_actionViewEdgeDirections_triggered();
 
     //
-    // Slot function executed when user toggles the visualization of the reference grid.
+    // Slot function called when the user toggles the visualization of the 
+    // reference grid.
     //
     void on_actionViewGrid_triggered();
 
     //
-    // Slot function executed when user hides all workspace elements.
+    // Slot function called when the user hides all workspace elements.
     //
     void on_actionViewHideAll_triggered();
 
@@ -606,12 +707,14 @@ public slots:
     void on_actionViewTessellationBoundingBox_triggered();
 
 	//
-	// Slot function executed when user toggles the visualization of the tessellation.
+	// Slot function called when the user toggles the visualization of the 
+    // tessellation.
 	//
 	void on_actionViewTessellationGeometry_triggered();
 
     //
-    // Slot function executed when user toggles the visualization of the face centers.
+    // Slot function called when the user toggles the visualization of the face
+    // centers.
     //
     void on_actionViewTileCenters_triggered();
 
@@ -624,7 +727,7 @@ public slots:
     void on_actionViewVTangentialForces_triggered();
 	
 	//
-	// Slot function executed when user shows all workspace elements.
+	// Slot function called when the user shows all workspace elements.
 	//
 	void on_actionViewShowAll_triggered();
 	
@@ -635,8 +738,10 @@ public slots:
  private:
 
      //
-     // Checks the directory for storing the information of the workspaces exists.
-     // @param bool mkdir Indicates whether to make the directory if it doesn't exist.
+     // Checks the directory for storing the information of the workspaces 
+     // exists.
+     // @param bool mkdir Indicates whether to make the directory if it doesn't
+     // exist.
      // @return bool Indicates whether the workspaces directory exists or not.
      //
      bool ValidateWorkspacesDirectory(bool mkdir = false) const;

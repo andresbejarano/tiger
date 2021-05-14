@@ -274,6 +274,44 @@ bool utils::sameSide(
     return (test >= 0.0);
 }
 
+std::vector<std::string> utils::split(const std::string& text, char sep) 
+{
+    assert(text.size() > 0);
+
+    std::vector<std::string> tokens;
+
+    size_t n = text.size();
+    size_t i = 0;
+
+    for (size_t j = 0; j < n; j += 1) 
+    {
+        if (text.at(j) == sep) 
+        {
+            tokens.push_back(text.substr(i, j - i));
+            i = j + 1;
+        }
+    }
+
+    tokens.push_back(text.substr(i, n - i));
+
+    // Verify there was at least one token
+    assert(tokens.size() > 0);
+
+    return tokens;
+}
+
+std::string utils::toString(const Eigen::Vector3d& V, double threshold) 
+{
+    std::stringstream ss;
+
+    ss << "(" 
+        << (V.x() <= threshold ? 0.0 : V.x()) << ", " 
+        << (V.y() <= threshold ? 0.0 : V.y()) << ", " 
+        << (V.z() <= threshold ? 0.0 : V.z()) << ")";
+
+    return ss.str();
+}
+
 double utils::vectorFunction(std::vector<double> & values, const std::string & function)
 {
     if (function == "AVG") 
@@ -299,6 +337,18 @@ void utils::write(const Eigen::Vector3d & V, bool newline)
     {
         std::cout << std::endl;
     }
+}
+
+void utils::write(const std::array<double, 6>& V) 
+{
+    std::cout << "[ " << V[0];
+
+    for (size_t i = 1; i < 6; i += 1) 
+    {
+        std::cout << ",\t" << V[i];
+    }
+
+    std::cout << " ]" << std::endl;
 }
 
 void utils::write(const std::list<Eigen::Vector3d> & points)
@@ -347,6 +397,34 @@ void utils::write(const std::vector<double> & V)
     std::cout << V[0];
 
     for (size_t i = 1; i < nV; i += 1)
+    {
+        std::cout << " " << V[i];
+    }
+
+    std::cout << std::endl;
+}
+
+void utils::write(const std::vector<size_t>& V) 
+{
+    size_t nV = V.size();
+
+    std::cout << V[0];
+
+    for (size_t i = 1; i < nV; i += 1)
+    {
+        std::cout << " " << V[i];
+    }
+
+    std::cout << std::endl;
+}
+
+void utils::write(const std::vector<std::string>& V) 
+{
+    size_t nV = V.size();
+
+    std::cout << V[0];
+
+    for (size_t i = 1; i < nV; i += 1) 
     {
         std::cout << " " << V[i];
     }

@@ -14,6 +14,11 @@ class Block : public AttributedClass, public GeometricClass
 
 private:
 
+    // The density of the block. We require this value for the static 
+    // equilibrium analysis and normalizing the resultant forces (if 
+    // indicated). By default, its value is 1.0.
+    double m_density;
+
     // Indicates whether the block is enabled or disabled. An enabled block 
     // participates in the static equilibrium analysis
     bool m_enabled;
@@ -141,6 +146,17 @@ public:
     //
     size_t GetCoplanarFace(const toolkit::Plane & plane, double threshold = 1e-8) const;
 
+    // 
+    // Returns the density of the block.
+    // @return double
+    double GetDensity() const;
+
+    // 
+    // Returns the array with the force and torque loads of the block.
+    // @return const std::array<double, 6>&
+    // 
+    const std::array<double, 6>& GetLoads() const;
+
     //
     // Calculates the interface polygon between this block and another block. Keep
     // in mind an interface polygon between both blocks exists only if there 
@@ -235,7 +251,7 @@ public:
     // @param double gravity The gravity value.
     // @return std::vector<double> The vector with the loads of the block.
     //
-    std::vector<double> Loads(double density, double gravity = -9.8) const;
+    //std::vector<double> Loads(double density, double gravity = -9.8) const;
 
     //
     // @param const toolkit::Plane & plane
@@ -249,6 +265,11 @@ public:
         double extrados, 
         double intrados, 
         double threshold = 1e-8) const;
+
+    // 
+    // 
+    // 
+    void SetDensity(double density);
 
     //
     // Sets the enabled status of the block.

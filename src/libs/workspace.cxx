@@ -527,17 +527,18 @@ void Workspace::EraseInterfaces()
 
 void Workspace::EraseTileCenters()
 {
-    // Erase the edge directions from the workspace (blocks and interface polygons are removed as 
-    // well)
+    // Erase the edge directions from the workspace (blocks and interface 
+    // polygons are removed as well)
     EraseEdgeDirections();
 
-    // If there is a tessellation then erase the face centers from the tessellation
+    // If there is a tessellation then erase the face centers from the 
+    // tessellation
     if (m_tessellation && m_tessellation->IsDCELLoaded())
     {
         std::shared_ptr<dcel::DCEL> geometry = m_tessellation->DCEL();
 
-        // Traverse through the tiles of the tessellation and remove the dynamic attributes 
-        // related to the face centers
+        // Traverse through the tiles of the tessellation and remove the 
+        // dynamic attributes related to the face centers
         for (auto it = geometry->Faces().begin(); it != geometry->Faces().end(); ++it)
         {
             (*it)->Attributes().Erase(ATTRIB_CENTER);
@@ -562,10 +563,12 @@ void Workspace::GenerateEquilibriumSystem(
     I.clear();
     nR.clear();
 
-    // Define the map for relating the original block indices and their new indices
+    // Define the map for relating the original block indices and their new 
+    // indices
     std::map<size_t, size_t> blockIndices;
 
-    // Define the map for relating the original interface polygon indices and their new indices
+    // Define the map for relating the original interface polygon indices and 
+    // their new indices
     std::map<size_t, size_t> interfaceIndices;
 
     // Traverse through the given relations
@@ -580,24 +583,29 @@ void Workspace::GenerateEquilibriumSystem(
         // Search for the original block index in the block indices map
         auto findblockIndex = blockIndices.find(origblockIndex);
 
-        // If the original block index is not in the block indices map then define the new block 
-        // index and insert both original and new block indices into the block indices map
+        // If the original block index is not in the block indices map then 
+        // define the new block index and insert both original and new block 
+        // indices into the block indices map
         if (findblockIndex == blockIndices.end()) 
         {
             // Define the new block index
             newblockIndex = blockIndices.size();
 
-            // Store both original and new block indices into the block indices map
+            // Store both original and new block indices into the block indices
+            // map
             blockIndices.insert(std::make_pair(origblockIndex, newblockIndex));
 
             // Get the centroid of the block and insert it in the centroids vector
             C.push_back(m_assembly->GetBlocks()[origblockIndex]->Geometry().centroid());
 
             // Get the loads of the block and insert it in the weights vector
-            W.push_back(m_assembly->GetBlocks()[origblockIndex]->Loads(density, gravity));
+            //W.push_back(m_assembly->GetBlocks()[origblockIndex]->Loads(density, gravity));
+            const std::array<double, 6>& blockLoads = m_assembly->GetBlocks()[origblockIndex]->GetLoads();
+            W.push_back({ blockLoads[0], blockLoads[1], blockLoads[2], blockLoads[3], blockLoads[4], blockLoads[5] });
 
-            // Get the pointer to the current block, indicate it is used in the equilibrium 
-            // analysis and set its new index (as it will be used during the equilibrium analysis)
+            // Get the pointer to the current block, indicate it is used in the
+            // equilibrium analysis and set its new index (as it will be used 
+            // during the equilibrium analysis)
             std::shared_ptr<Block> block = m_assembly->GetBlocks()[origblockIndex];
             block->Attributes().Set<bool>(ATTRIB_IN_EQUILIBRIUM, true);
             block->Attributes().Set<size_t>(ATTRIB_EQUILIBRIUM_INDEX, newblockIndex);
@@ -1107,6 +1115,67 @@ void Workspace::SetAssembly(std::vector<VF> & blocks, bool disableBoundary)
         assert(m_tessellation);
         m_assembly->ToggleBlocksByBoundary(m_tessellation);
     }
+}
+
+std::vector<size_t> Workspace::SelectedBlocks(const std::vector<std::string>& strings) const 
+{
+    size_t nBlocks = m_assembly->CountBlocks();
+
+    std::vector<size_t> selected;
+
+    for (auto it = strings.begin(); it != strings.end(); ++it) 
+    {
+        // If the current value is "all" then reset the selected vector and 
+        // populate it with all block indices
+        if ((*it).compare("all") == 0) 
+        {
+            selected = std::vector<size_t>(nBlocks);
+
+            for (size_t i = 0; i < nBlocks; i += 1) 
+            {
+                selected[i] = i;
+            }
+
+            return selected;
+        }
+
+        // Split the current string into tokens. The number of resultant tokens
+        // must be either 1 or 2
+        std::vector<std::string> tokens = utils::split(*it, '-');
+        assert(tokens.size() == 1 || tokens.size() == 2);
+
+        //
+        if (tokens.size() == 1) 
+        {
+            // Get the index. It must be a value less than the number of blocks
+            // of the assembly.
+            size_t index = std::stoi(tokens[0]);
+            assert(index < nBlocks);
+
+            selected.push_back(std::stoi(tokens[0]));
+        }
+        else 
+        {
+            // Get the indices of the indicated range. Both indices must be 
+            // less than the number of blocks of the assembly. Also, the first 
+            // index must be less than the second index.
+            size_t first = std::stoi(tokens[0]);
+            size_t second = std::stoi(tokens[1]);
+            assert(first < nBlocks);
+            assert(second < nBlocks);
+            assert(first < second);
+
+            for (size_t i = first; i <= second; i += 1) 
+            {
+                selected.push_back(i);
+            }
+        }
+    }
+
+    // Verify at least one block was selected
+    assert(selected.size() > 0);
+
+    return selected;
 }
 
 void Workspace::SetAssemblyUsingAdaptiveTileOffsetClippedBlocks(

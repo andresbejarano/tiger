@@ -478,6 +478,20 @@ private:
 
 public:
 
+    // 
+    // Returns a vector with the indices of the selected blocks according to 
+    // the values in the given vector of strings. Accepted string values are:
+    // - "all"
+    // - A single index (e.g., "4") in range [0, n), where n is the number of 
+    //   blocks.
+    // - A range of values: (e.g., "15-20"). Each value must be in range 
+    //   [0, n), where n is the number of blocks, and the first value must be
+    //   less than the second.
+    // @param const std::vector<std::string>& strings
+    // @return std::vector<size_t>
+    // 
+    std::vector<size_t> SelectedBlocks(const std::vector<std::string>& strings) const;
+
     //
     // @param const std::string & topFunction
     // @param const std::string & bottomFunction

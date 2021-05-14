@@ -119,6 +119,26 @@ public:
     //
     size_t CountVertices() const;
 
+    // 
+    // 
+    // 
+    void DisableAllBlocks();
+
+    // 
+    // 
+    // 
+    void DisableBlock(size_t index);
+
+    // 
+    // 
+    // 
+    void DisableBlocks(size_t firstIndex, size_t last_index);
+
+    // 
+    // 
+    // 
+    void DisableBlocks(const std::vector<size_t>& indices);
+
     //
     // Disable the blocks that intersect with a given plane.
     // @param const toolkit::Plane & plane The reference to a plane.
@@ -129,7 +149,22 @@ public:
     // Enable all blocks of the assembly. blocks store their respective enabled 
     // value in the ATTRIB_block_ENABLED dynamic attribute.
     //
-    void EnableAll();
+    void EnableAllBlocks();
+
+    // 
+    // 
+    // 
+    void EnableBlock(size_t index);
+
+    // 
+    // 
+    // 
+    void EnableBlocks(size_t firstIndex, size_t lastIndex);
+
+    // 
+    // 
+    // 
+    void EnableBlocks(const std::vector<size_t>& indices);
 
     //
     // @param const std::shared_ptr<Tessellation> tessellation

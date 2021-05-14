@@ -2,11 +2,9 @@
 
 #include "MainTigerWindow.h"
 
-#include <filesystem>
-#include <set>
-
 // Include Qt related headers
 #include <QFileDialog>
+#include <QKeyEvent>
 #include <QMessageBox>
 #include <QScreen>
 #include <QStandardPaths>
@@ -18,7 +16,6 @@
 #include <vtkColorTransferFunction.h>
 #include <vtkDoubleArray.h>
 #include <vtkElevationFilter.h>
-#include <vtkFollower.h>
 #include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkLine.h>
 #include <vtkMatrix4x4.h>
@@ -43,11 +40,14 @@
 #include <vtkVRMLExporter.h>
 
 // Include dialog headers
+#include "addblockweightloadsparametersdialog.h"
+#include "addblocktorqueloadparametersdialog.h"
 #include "adaptivetileoffsetclippingparametersdialog.h"
 #include "bendedsquareparametersdialog.h"
 #include "centerdirectionparametersdialog.h"
 #include "cyclideparametersdialog.h"
 #include "cylinderparametersdialog.h"
+#include "toggleblocksparametersdialog.h"
 #include "paraboloidparametersdialog.h"
 #include "equilateraltriangleparametersdialog.h"
 #include "equilibriumanalysisparametersdialog.h"
@@ -112,6 +112,7 @@ MainTigerWindow::MainTigerWindow() :
     m_currentInterfacePolygonsType(INTERFACES::PLAIN), 
     m_lastDirectory(QStandardPaths::locate(QStandardPaths::DocumentsLocation, QString(), QStandardPaths::LocateDirectory)),
     m_viewAssemblyBlocksBoundingBoxes(false), 
+    m_viewAssemblyBlockIndices(false), 
     m_viewAssemblyGeometry(true), 
 	m_viewAxes(true), 
 	m_viewEdgeDirections(true), 
@@ -123,6 +124,7 @@ MainTigerWindow::MainTigerWindow() :
 	m_viewInterfacePolygons(true), 
 	m_viewSectionHeights(true), 
     m_vtkAssemblyBlocksBoundingBoxesActor(nullptr), 
+    m_vtkAssemblyBlockIndicesActor(),
     m_vtkAssemblyEdgesActor(nullptr), 
     m_vtkAssemblyFacesActor(nullptr), 
 	m_vtkAxesActor(nullptr), 
@@ -149,6 +151,7 @@ MainTigerWindow::MainTigerWindow() :
     setFixedSize(height * (1.0 + sqrt(5.0)) / 2.0, height);
 
 	// Update the viewing menu items
+    this->actionViewAssemblyBlockIndices->setChecked(m_viewAssemblyBlockIndices);
     this->actionViewAssemblyBoundingBoxes->setChecked(m_viewAssemblyBlocksBoundingBoxes);
 	this->actionViewAssemblyGeometry->setChecked(m_viewAssemblyGeometry);
 	this->actionViewAxes->setChecked(m_viewAxes);
@@ -236,6 +239,19 @@ MainTigerWindow::MainTigerWindow() :
 	// Initialize the axes and grid actors, they start initialized by default
 	InitAxesActor();
 	InitGridActor();
+
+    /*vtkNew<vtkVectorText> aText;
+    aText->SetText("Something");
+    vtkNew<vtkPolyDataMapper> textMapper;
+    textMapper->SetInputConnection(aText->GetOutputPort());
+    m_vtkAssemblyIndicesActor = vtkFollower::New();
+    m_vtkAssemblyIndicesActor->SetMapper(textMapper);
+    m_vtkAssemblyIndicesActor->SetScale(0.2, 0.2, 0.2);
+    m_vtkAssemblyIndicesActor->AddPosition(0, -0.1, 0);
+    m_vtkAssemblyIndicesActor->GetProperty()->SetColor(colors->GetColor3d("Peacock").GetData());
+    m_vtkAssemblyIndicesActor->SetCamera(m_vtkCamera);
+    m_vtkRenderer->AddActor(m_vtkAssemblyIndicesActor);*/
+
 
     // Validate the workspaces directory, make it if it doesn't exist
     assert(ValidateWorkspacesDirectory(true));
@@ -340,6 +356,17 @@ void MainTigerWindow::ClearAssemblyActors()
     {
         m_vtkRenderer->RemoveActor(m_vtkAssemblyEdgesActor);
         m_vtkAssemblyEdgesActor->Delete();
+    }
+
+    if (!m_vtkAssemblyBlockIndicesActor.empty()) 
+    {
+        for (auto it = m_vtkAssemblyBlockIndicesActor.begin(); it != m_vtkAssemblyBlockIndicesActor.end(); ++it) 
+        {
+            m_vtkRenderer->RemoveActor((*it));
+            (*it)->Delete();
+        }
+
+        m_vtkAssemblyBlockIndicesActor.clear();
     }
 }
 
@@ -591,7 +618,51 @@ void MainTigerWindow::InitAssemblyActors(
     m_vtkRenderer->AddActor(m_vtkAssemblyFacesActor);
     m_vtkRenderer->AddActor(m_vtkAssemblyEdgesActor);
 
-    std::cout << "#Blocks = " << assembly->CountBlocks() << std::endl;
+    // Initialize the actors to display the block indices
+    InitAssemblyBlockIndicesActor();
+}
+
+void MainTigerWindow::InitAssemblyBlockIndicesActor()
+{
+    size_t nBlocks = m_workspace->GetAssembly()->CountBlocks();
+
+    m_vtkAssemblyBlockIndicesActor.resize(nBlocks);
+
+    vtkNew<vtkNamedColors> colors;
+
+    const std::vector<std::shared_ptr<Block>> blocks = m_workspace->GetAssembly()->GetBlocks();
+
+    for (size_t i = 0; i < nBlocks; i += 1) 
+    {
+        // Initialize and define the vector text to write the index of the 
+        // current block
+        vtkNew<vtkVectorText> text;
+        text->SetText(std::to_string(i).c_str());
+
+        // Initialize and define the mapper for the vector text
+        vtkNew<vtkPolyDataMapper> mapper;
+        mapper->SetInputConnection(text->GetOutputPort());
+
+        // Get the centroid of the current block and translate it with respect 
+        // of the normal vector of the respective face in the tessellation. We 
+        // will use it to position the text
+        //Eigen::Vector3d C = blocks[i]->Geometry().centroid() + m_workspace->GetTessellation()->Geometry().Normal(blocks[i]->FaceIndex(), true);
+        Eigen::Vector3d faceCentroid = m_workspace->GetTessellation()->Geometry().centroid(blocks[i]->FaceIndex());
+        Eigen::Vector3d faceNormal = m_workspace->GetTessellation()->Geometry().Normal(blocks[i]->FaceIndex(), true);
+        Eigen::Vector3d C = faceCentroid + faceNormal;
+
+        // Initialize and define the actor to display the current block index
+        m_vtkAssemblyBlockIndicesActor[i] = vtkFollower::New();
+        m_vtkAssemblyBlockIndicesActor[i]->SetMapper(mapper);
+        m_vtkAssemblyBlockIndicesActor[i]->SetScale(0.2, 0.2, 0.2);
+        m_vtkAssemblyBlockIndicesActor[i]->AddPosition(C.x(), C.y(), C.z());
+        m_vtkAssemblyBlockIndicesActor[i]->GetProperty()->SetColor(colors->GetColor3d("Peacock").GetData());
+        m_vtkAssemblyBlockIndicesActor[i]->SetCamera(m_vtkCamera);
+        m_vtkAssemblyBlockIndicesActor[i]->SetVisibility(m_viewAssemblyBlockIndices);
+
+        // Add the current actor to the renderer
+        m_vtkRenderer->AddActor(m_vtkAssemblyBlockIndicesActor[i]);
+    }
 }
 
 void MainTigerWindow::InitAxesActor()
@@ -1299,8 +1370,6 @@ void MainTigerWindow::InitInterfacePolygonsActor(const std::shared_ptr<Interface
 
     // Update the current interface polygon type
     m_currentInterfacePolygonsType = INTERFACES::PLAIN;
-
-    std::cout << "#Interfaces = " << intfs->CountInterfaces() << std::endl;
 }
 
 void MainTigerWindow::InitInterfacePolygonsActor(
@@ -1510,6 +1579,21 @@ void MainTigerWindow::InitInterfacePolygonsActor(
     // Update the current interface polygon type
     m_currentInterfacePolygonsType = type;
 }
+
+/*void MainTigerWindow::keyPressEvent(QKeyEvent* event)
+{
+    //QString msg = "You pressed " + event->key();
+    //QMessageBox::information(this, APP_TITLE, msg);
+}*/
+
+/*void MainTigerWindow::keyReleaseEvent(QKeyEvent* event)
+{
+    //QString msg = "You released " + event->key();
+    QMessageBox::information(this, APP_TITLE, "Key released");
+
+    // Stop propagating the key event to the base classes
+    event->ignore();
+}*/
 
 void MainTigerWindow::SetInterfacePolygons(bool render)
 {
@@ -2723,15 +2807,14 @@ void MainTigerWindow::on_actionNewTruncatedConeGeometry_triggered()
 
 void MainTigerWindow::on_actionNewWorkspace_triggered()
 {
-	// 
-	if (m_workspace) 
-	{
-		m_workspace->Clear();
-		m_workspace = nullptr;
-		std::cout << "on_actionNewWorkspace_triggered Workspace cleAred" << std::endl;
-	}
+    QMessageBox::information(this, APP_TITLE, "on_actionNewWorkspace_triggered");
 
-	std::cout << "on_actionNewWorkspace_triggered New Workspace" << std::endl;
+	//if (m_workspace) 
+	//{
+	//	m_workspace->Clear();
+	//	m_workspace = nullptr;
+	//	//std::cout << "on_actionNewWorkspace_triggered Workspace cleAred" << std::endl;
+	//}
 }
 
 void MainTigerWindow::on_actionSaveAbaqusFile_triggered()
@@ -2969,26 +3052,19 @@ void MainTigerWindow::on_actionSaveVrmlWorkspaceFile_triggered()
     QMessageBox::information(this, APP_TITLE, filename + " saved successfully.");
 }
 
-void MainTigerWindow::on_actionTicCalculateOverlapping_triggered()
-{
-    QMessageBox::information(this, APP_TITLE, "on_actionTicCalculateOverlapping_triggered");
-}
-
-void MainTigerWindow::on_actionTicEquilibriumAnalysis_triggered()
+void MainTigerWindow::on_actionTicAddBlockForceTorqueLoads_triggered()
 {
     // Initialize the object to store the checking requirements result
     Message msg;
 
-    // Check the requirements to run the equilibrium analysis. Show a warning message if a 
-    // requirement is missing
-    if (!m_workspace->CheckEquilibriumAnalysisRequirements(msg))
+    // Check the requirements 
+    if (!m_workspace->CheckAssemblyCodeRequirements(msg))
     {
         QMessageBox::warning(this, APP_TITLE, msg.getText());
         return;
     }
 
-    // Open the equilibrium analysis parameters dialog
-    EquilibriumAnalysisParametersDialog dialog(this);
+    AddBlockTorqueLoadParametersDialog dialog;
 
     // Exit the function if the user canceled the dialog
     if (dialog.exec() == QDialog::Rejected)
@@ -2996,127 +3072,152 @@ void MainTigerWindow::on_actionTicEquilibriumAnalysis_triggered()
         return;
     }
 
-    // Get the equilibrium analysis parameter values
-    double density = dialog.GetDensity();
-    double friction = dialog.GetFrictionCoefficient();
-    QString lengthUnit = dialog.GetLengthUnit();
-    double cWeight = dialog.GetCompressionWeight();
-    double tWeight = dialog.GetTensionWeight();
-    double uWeight = dialog.GetUTangentialWeight();
-    double vWeight = dialog.GetVTangentialWeight();
+    // 
+    // TODO: Add UI validation of the block indices
+    QString blockIndices = dialog.GetBlockIndices().simplified().replace(" ", "").toLower();
+    QString loadType = dialog.GetLoadType();
+    double x = dialog.GetX();
+    double y = dialog.GetY();
+    double z = dialog.GetZ();
 
-    bool normalize = dialog.GetNormalize();
-    bool verbose = dialog.GetVerbose();
-    bool files = dialog.GetFiles();
+    // Split the given block indices text by comma. Then, get the indices of 
+    // the selected blocks
+    std::vector<std::string> tokens = utils::split(blockIndices.toStdString(), ',');
+    std::vector<size_t> selected = m_workspace->SelectedBlocks(tokens);
 
-    // Run the equilibrium analysis
-    if (m_workspace->RunEquilibriumAnalysis(
-        density,
-        friction,
-        lengthUnit.toStdString(),
-        verbose,
-        files,
-        cWeight,
-        tWeight,
-        uWeight,
-        vWeight)) 
+    size_t blockCount = 0;
+
+    for (auto it = selected.begin(); it != selected.end(); ++it)
     {
-        std::shared_ptr<EquilibriumAnalysis::Result> results = m_workspace->GetEquilibriumResults();
+        // Get the pointer to the current block
+        const std::shared_ptr<Block> block = m_workspace->GetAssembly()->GetBlocks()[*it];
 
-        // Normalize the force magnitudes if indicated. This normalization divides all force 
-        // magnitudes by the density value
-        if (normalize) 
+        if (loadType.compare("Force") == 0) 
         {
-            results->Normalize(density);
-            std::cout << "Normalized forces" << std::endl;
+            block->AddForceLoad(x, y, z);
+        }
+        else 
+        {
+            block->AddTorqueLoad(x, y, z);
         }
 
-        if (verbose)
-        {
-            results->Write();
-        }
+        blockCount += 1;
+    }
 
-        // Write the force ranges
-        results->WriteForceRanges();
+    QString message(loadType + " load added to " + QString::number(blockCount) + " block(s).");
+    QMessageBox::information(this, APP_TITLE, message);
+}
 
-        switch (m_currentInterfacePolygonsType) 
-        {
-            case INTERFACES::PLAIN: 
-            {
-                m_currentInterfacePolygonsType = INTERFACES::COMPRESSION;
+void MainTigerWindow::on_actionTicAddBlockWeightLoads_triggered()
+{
+    // Initialize the object to store the checking requirements result
+    Message msg;
 
-                this->actionViewPlainInterfaces->setChecked(false);
-                this->actionViewCompressionForces->setChecked(m_viewInterfacePolygons);
-                this->actionViewTensionForces->setChecked(false);
-                this->actionViewUTangentialForces->setChecked(false);
-                this->actionViewVTangentialForces->setChecked(false);
+    // Check the requirements 
+    if (!m_workspace->CheckAssemblyCodeRequirements(msg))
+    {
+        QMessageBox::warning(this, APP_TITLE, msg.getText());
+        return;
+    }
 
-                break;
-            }
+    AddBlockWeightLoadsParametersDialog dialog;
 
-            case INTERFACES::COMPRESSION:
-            {
-                this->actionViewPlainInterfaces->setChecked(false);
-                this->actionViewCompressionForces->setChecked(m_viewInterfacePolygons);
-                this->actionViewTensionForces->setChecked(false);
-                this->actionViewUTangentialForces->setChecked(false);
-                this->actionViewVTangentialForces->setChecked(false);
+    // Exit the function if the user canceled the dialog
+    if (dialog.exec() == QDialog::Rejected)
+    {
+        return;
+    }
 
-                break;
-            }
+    // 
+    // TODO: Add UI validation of the block indices
+    QString blockIndices = dialog.GetBlockIndices().simplified().replace(" ", "").toLower();
+    double density = dialog.GetDensity();
+    QString units = dialog.GetUnits();
 
-            case INTERFACES::TENSION:
-            {
-                this->actionViewPlainInterfaces->setChecked(false);
-                this->actionViewCompressionForces->setChecked(false);
-                this->actionViewTensionForces->setChecked(m_viewInterfacePolygons);
-                this->actionViewUTangentialForces->setChecked(false);
-                this->actionViewVTangentialForces->setChecked(false);
+    // Multiply the density by the gravity value depending on the selected 
+    // units
+    double densityXgravity = density * -1.0 * ((units.compare("m") == 0) ? 9.8 : 980.0);
 
-                break;
-            }
+    // Split the given block indices text by comma. Then, get the indices of 
+    // the selected blocks
+    std::vector<std::string> tokens = utils::split(blockIndices.toStdString(), ',');
+    std::vector<size_t> selected = m_workspace->SelectedBlocks(tokens);
 
-            case INTERFACES::UTANGENTIAL:
-            {
-                this->actionViewPlainInterfaces->setChecked(false);
-                this->actionViewCompressionForces->setChecked(false);
-                this->actionViewTensionForces->setChecked(false);
-                this->actionViewUTangentialForces->setChecked(m_viewInterfacePolygons);
-                this->actionViewVTangentialForces->setChecked(false);
+    size_t blockCount = 0;
 
-                break;
-            }
+    for (auto it = selected.begin(); it != selected.end(); ++it) 
+    {
+        // Get the pointer to the current block
+        const std::shared_ptr<Block> block = m_workspace->GetAssembly()->GetBlocks()[*it];
 
-            case INTERFACES::VTANGENTIAL:
-            {
-                this->actionViewPlainInterfaces->setChecked(false);
-                this->actionViewCompressionForces->setChecked(false);
-                this->actionViewTensionForces->setChecked(false);
-                this->actionViewUTangentialForces->setChecked(false);
-                this->actionViewVTangentialForces->setChecked(m_viewInterfacePolygons);
+        // Add the current block weight as a force load.
+        double weight = block->Geometry().Volume() * densityXgravity;
+        block->AddForceLoad(0.0, weight, 0.0);
 
-                break;
-            }
-        }
+        blockCount += 1;
+    }
 
-        // Initialize the interface polygons actor usign the result values for coloring the vertices
-        InitInterfacePolygonsActor(
-            m_workspace->GetInterfacePolygons(), 
-            results, 
-            m_currentInterfacePolygonsType);
+    QString message("Weight added to " + QString::number(blockCount) + " blocks.");
+    QMessageBox::information(this, APP_TITLE, message);
+}
 
-        if (!m_viewInterfacePolygons) 
-        {
-            AskViewInterfacePolygons();
-        }
+void MainTigerWindow::on_actionTicCalculateOverlapping_triggered()
+{
+    QMessageBox::information(this, APP_TITLE, "on_actionTicCalculateOverlapping_triggered");
+}
 
-        // Call Render to show changes
-        qvtkWidget->renderWindow()->Render();
+void MainTigerWindow::on_actionTicEnableDisableSpecificBlocks_triggered()
+{
+    // Initialize the object to store the checking requirements result
+    Message msg;
+
+    // Check the requirements 
+    if (!m_workspace->CheckFixBottomBlocksRequirements(msg))
+    {
+        QMessageBox::warning(this, APP_TITLE, msg.getText());
+        return;
+    }
+
+    // 
+    ToggleBlocksParametersDialog dialog;
+
+    // Exit the function if the user canceled the dialog
+    if (dialog.exec() == QDialog::Rejected)
+    {
+        return;
+    }
+
+    // 
+    // TODO: Add UI validation of the block indices
+    QString blockIndices = dialog.GetBlockIndices().simplified().replace(" ", "").toLower();
+    QString action = dialog.GetAction();
+
+    // Remove any interfaces between blocks
+    m_workspace->EraseInterfaces();
+
+    // Split the given block indices text by comma. Then, get the indices of 
+    // the selected blocks
+    std::vector<std::string> tokens = utils::split(blockIndices.toStdString(), ',');
+    std::vector<size_t> selected = m_workspace->SelectedBlocks(tokens);
+
+    if (action.compare("Enable") == 0) 
+    {
+        m_workspace->GetAssembly()->EnableBlocks(selected);
     }
     else 
     {
-        QMessageBox::critical(this, "Unfeasible System", "System has no solution.");
+        m_workspace->GetAssembly()->DisableBlocks(selected);
     }
+
+    // Clear the actors for rendering the assembly and the inteface polygons
+    ClearAssemblyActors();
+    ClearInteracePolygonsActor();
+
+    // Initialize the actors for rendering the assembly
+    InitAssemblyActors(m_workspace->GetTessellation(), m_workspace->GetAssembly());
+
+    // Call Render to show changes
+    qvtkWidget->renderWindow()->Render();
 }
 
 void MainTigerWindow::on_actionTicFixBottomBlocks_triggered()
@@ -3241,6 +3342,150 @@ void MainTigerWindow::on_actionTicSetCentersAndDirections_triggered()
     qvtkWidget->renderWindow()->Render();
 }
 
+void MainTigerWindow::on_actionTicStaticEquilibriumAnalysis_triggered()
+{
+    // Initialize the object to store the checking requirements result
+    Message msg;
+
+    // Check the requirements to run the equilibrium analysis. Show a warning message if a 
+    // requirement is missing
+    if (!m_workspace->CheckEquilibriumAnalysisRequirements(msg))
+    {
+        QMessageBox::warning(this, APP_TITLE, msg.getText());
+        return;
+    }
+
+    // Open the equilibrium analysis parameters dialog
+    EquilibriumAnalysisParametersDialog dialog(this);
+
+    // Exit the function if the user canceled the dialog
+    if (dialog.exec() == QDialog::Rejected)
+    {
+        return;
+    }
+
+    // Get the equilibrium analysis parameter values
+    double density = dialog.GetDensity();
+    double friction = dialog.GetFrictionCoefficient();
+    QString lengthUnit = dialog.GetLengthUnit();
+    double cWeight = dialog.GetCompressionWeight();
+    double tWeight = dialog.GetTensionWeight();
+    double uWeight = dialog.GetUTangentialWeight();
+    double vWeight = dialog.GetVTangentialWeight();
+
+    bool normalize = dialog.GetNormalize();
+    bool verbose = dialog.GetVerbose();
+    bool files = dialog.GetFiles();
+
+    // Run the equilibrium analysis
+    if (m_workspace->RunEquilibriumAnalysis(
+        density,
+        friction,
+        lengthUnit.toStdString(),
+        verbose,
+        files,
+        cWeight,
+        tWeight,
+        uWeight,
+        vWeight))
+    {
+        std::shared_ptr<EquilibriumAnalysis::Result> results = m_workspace->GetEquilibriumResults();
+
+        // Normalize the force magnitudes if indicated. This normalization divides all force 
+        // magnitudes by the density value
+        if (normalize)
+        {
+            results->Normalize(density);
+        }
+
+        if (verbose)
+        {
+            results->Write();
+        }
+
+        // Write the force ranges
+        results->WriteForceRanges();
+
+        switch (m_currentInterfacePolygonsType)
+        {
+        case INTERFACES::PLAIN:
+        {
+            m_currentInterfacePolygonsType = INTERFACES::COMPRESSION;
+
+            this->actionViewPlainInterfaces->setChecked(false);
+            this->actionViewCompressionForces->setChecked(m_viewInterfacePolygons);
+            this->actionViewTensionForces->setChecked(false);
+            this->actionViewUTangentialForces->setChecked(false);
+            this->actionViewVTangentialForces->setChecked(false);
+
+            break;
+        }
+
+        case INTERFACES::COMPRESSION:
+        {
+            this->actionViewPlainInterfaces->setChecked(false);
+            this->actionViewCompressionForces->setChecked(m_viewInterfacePolygons);
+            this->actionViewTensionForces->setChecked(false);
+            this->actionViewUTangentialForces->setChecked(false);
+            this->actionViewVTangentialForces->setChecked(false);
+
+            break;
+        }
+
+        case INTERFACES::TENSION:
+        {
+            this->actionViewPlainInterfaces->setChecked(false);
+            this->actionViewCompressionForces->setChecked(false);
+            this->actionViewTensionForces->setChecked(m_viewInterfacePolygons);
+            this->actionViewUTangentialForces->setChecked(false);
+            this->actionViewVTangentialForces->setChecked(false);
+
+            break;
+        }
+
+        case INTERFACES::UTANGENTIAL:
+        {
+            this->actionViewPlainInterfaces->setChecked(false);
+            this->actionViewCompressionForces->setChecked(false);
+            this->actionViewTensionForces->setChecked(false);
+            this->actionViewUTangentialForces->setChecked(m_viewInterfacePolygons);
+            this->actionViewVTangentialForces->setChecked(false);
+
+            break;
+        }
+
+        case INTERFACES::VTANGENTIAL:
+        {
+            this->actionViewPlainInterfaces->setChecked(false);
+            this->actionViewCompressionForces->setChecked(false);
+            this->actionViewTensionForces->setChecked(false);
+            this->actionViewUTangentialForces->setChecked(false);
+            this->actionViewVTangentialForces->setChecked(m_viewInterfacePolygons);
+
+            break;
+        }
+        }
+
+        // Initialize the interface polygons actor usign the result values for coloring the vertices
+        InitInterfacePolygonsActor(
+            m_workspace->GetInterfacePolygons(),
+            results,
+            m_currentInterfacePolygonsType);
+
+        if (!m_viewInterfacePolygons)
+        {
+            AskViewInterfacePolygons();
+        }
+
+        // Call Render to show changes
+        qvtkWidget->renderWindow()->Render();
+    }
+    else
+    {
+        QMessageBox::critical(this, "Unfeasible System", "System has no solution.");
+    }
+}
+
 void MainTigerWindow::on_actionTicTiltingAngleMethod_triggered()
 {
     // Initialize the object to store the checking requirements result
@@ -3285,6 +3530,21 @@ void MainTigerWindow::on_actionTicTiltingAngleMethod_triggered()
     InitAssemblyActors(m_workspace->GetTessellation(), m_workspace->GetAssembly());
 
     // Call Render to show changes
+    qvtkWidget->renderWindow()->Render();
+}
+
+void MainTigerWindow::on_actionViewAssemblyBlockIndices_triggered()
+{
+    m_viewAssemblyBlockIndices = this->actionViewAssemblyBlockIndices->isChecked();
+
+    if (!m_vtkAssemblyBlockIndicesActor.empty())
+    {
+        for (auto it = m_vtkAssemblyBlockIndicesActor.begin(); it != m_vtkAssemblyBlockIndicesActor.end(); ++it) 
+        {
+            (*it)->SetVisibility(m_viewAssemblyBlockIndices);
+        }
+    }
+
     qvtkWidget->renderWindow()->Render();
 }
 
@@ -3486,6 +3746,18 @@ void MainTigerWindow::on_actionViewHideAll_triggered()
         this->actionViewAssemblyGeometry->setChecked(false);
     }
 
+    if (m_viewAssemblyBlockIndices) 
+    {
+        m_viewAssemblyBlockIndices = false;
+
+        for (auto it = m_vtkAssemblyBlockIndicesActor.begin(); it != m_vtkAssemblyBlockIndicesActor.end(); ++it) 
+        {
+            (*it)->VisibilityOff();
+        }
+
+        this->actionViewAssemblyBlockIndices->setChecked(false);
+    }
+
     if (m_viewAssemblyBlocksBoundingBoxes) 
     {
         m_viewAssemblyBlocksBoundingBoxes = false;
@@ -3670,6 +3942,18 @@ void MainTigerWindow::on_actionViewShowAll_triggered()
         
         m_viewAssemblyGeometry = true;
         this->actionViewAssemblyGeometry->setChecked(true);
+    }
+
+    if (!m_viewAssemblyBlockIndices)
+    {
+        m_viewAssemblyBlockIndices = true;
+
+        for (auto it = m_vtkAssemblyBlockIndicesActor.begin(); it != m_vtkAssemblyBlockIndicesActor.end(); ++it)
+        {
+            (*it)->VisibilityOn();
+        }
+
+        this->actionViewAssemblyBlockIndices->setChecked(true);
     }
 
     if (!m_viewAssemblyBlocksBoundingBoxes) 

@@ -147,6 +147,15 @@ namespace utils
     bool sameSide(const Eigen::Vector3d & P, const Eigen::Vector3d & Q, const Eigen::Vector3d & A, const Eigen::Vector3d & B, double threshold = 1e-8);
 
     // 
+    // 
+    // 
+    std::vector<std::string> split(const std::string& text, char sep);
+
+    //
+    //
+    std::string toString(const Eigen::Vector3d& V, double threshold = 1e-8);
+
+    // 
     // Calculates a function using the values in a vector.
     // @param std::vector<double> & values The vector with the values for the function.
     // @param const std::string & function The name of the function.
@@ -160,18 +169,41 @@ namespace utils
     // @param bool newline Indicates whether to write a new line character after the vector or not.
     // 
     void write(const Eigen::Vector3d & V, bool newline = false);
+
+    // 
+    // 
+    // 
+    void write(const std::array<double, 6>& V);
     
-    //
+    // 
+    // 
+    // 
     void write(const std::list<Eigen::Vector3d> & points);
     
-    //
+    // 
+    // 
+    // 
     void write(const std::list<std::vector<size_t>> & L);
     
-    //
+    // 
+    // 
+    // 
     void write(const std::vector<Eigen::Vector3d> & V);
     
-    //
+    // 
+    // 
+    // 
     void write(const std::vector<double> & V);
+
+    // 
+    // 
+    // 
+    void write(const std::vector<size_t>& V);
+
+    // 
+    // 
+    // 
+    void write(const std::vector<std::string> & V);
 
 }
 

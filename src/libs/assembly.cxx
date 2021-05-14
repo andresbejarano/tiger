@@ -276,6 +276,41 @@ size_t Assembly::CountVertices() const
     return nVertices;
 }
 
+void Assembly::DisableAllBlocks()
+{
+    for (auto it = m_blocks.begin(); it != m_blocks.end(); ++it)
+    {
+        (*it)->Disable();
+    }
+}
+
+void Assembly::DisableBlock(size_t index) 
+{
+    assert(index < m_blocks.size());
+
+    m_blocks[index]->Disable();
+}
+
+void Assembly::DisableBlocks(size_t firstIndex, size_t lastIndex)
+{
+    assert(firstIndex < m_blocks.size());
+    assert(lastIndex < m_blocks.size());
+    assert(firstIndex < lastIndex);
+
+    for (size_t i = firstIndex; i <= lastIndex; i += 1) 
+    {
+        m_blocks[i]->Disable();
+    }
+}
+
+void Assembly::DisableBlocks(const std::vector<size_t>& indices) 
+{
+    for (auto it = indices.begin(); it != indices.end(); ++it) 
+    {
+        m_blocks[*it]->Disable();
+    }
+}
+
 void Assembly::DisableIntersectedBlocks(const toolkit::Plane & plane)
 {
     size_t nBlocks = m_blocks.size();
@@ -286,11 +321,38 @@ void Assembly::DisableIntersectedBlocks(const toolkit::Plane & plane)
     }
 }
 
-void Assembly::EnableAll() 
+void Assembly::EnableAllBlocks() 
 {
     for (auto it = m_blocks.begin(); it != m_blocks.end(); ++it) 
     {
         (*it)->Enable();
+    }
+}
+
+void Assembly::EnableBlock(size_t index)
+{
+    assert(index < m_blocks.size());
+
+    m_blocks[index]->Enable();
+}
+
+void Assembly::EnableBlocks(size_t firstIndex, size_t lastIndex)
+{
+    assert(firstIndex < m_blocks.size());
+    assert(lastIndex < m_blocks.size());
+    assert(firstIndex < lastIndex);
+
+    for (size_t i = firstIndex; i <= lastIndex; i += 1)
+    {
+        m_blocks[i]->Enable();
+    }
+}
+
+void Assembly::EnableBlocks(const std::vector<size_t>& indices)
+{
+    for (auto it = indices.begin(); it != indices.end(); ++it)
+    {
+        m_blocks[*it]->Enable();
     }
 }
 

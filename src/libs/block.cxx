@@ -6,6 +6,7 @@
 #include <iostream>
 
 Block::Block() : 
+    m_density(1.0), 
     m_enabled(true), 
     m_faceIndex(0), 
     m_loads({ 0.0 , 0.0 , 0.0 , 0.0 , 0.0 , 0.0 })
@@ -144,6 +145,16 @@ size_t Block::GetCoplanarFace(const toolkit::Plane & plane, double threshold) co
     }
 
     return nFaces;
+}
+
+double Block::GetDensity() const 
+{
+    return m_density;
+}
+
+const std::array<double, 6>& Block::GetLoads() const 
+{
+    return m_loads;
 }
 
 VF Block::InterfacePolygon(const std::shared_ptr<Block> block, double threshold) const
@@ -431,16 +442,6 @@ Eigen::Vector3d Block::Intersect(
         }
     }
 
-
-
-    std::cout << "Face: " << std::endl;
-    face->Write();
-    std::cout << "Ray: " << std::endl;
-    ray.write();
-    std::cout << std::endl;
-    std::cout << "Geometry: " << std::endl;
-    m_vf.Write();
-
     // There must exist an intersection point, not having one here is an error
     assert(false);
     return Eigen::Vector3d::Zero();
@@ -629,16 +630,6 @@ Eigen::Vector3d Block::Intersect(const toolkit::Ray & ray, double & t, double th
         }
     }
 
-
-
-    std::cout << "Face: " << std::endl;
-    //face->Write();
-    std::cout << "Ray: " << std::endl;
-    ray.write();
-    std::cout << std::endl;
-    std::cout << "Geometry: " << std::endl;
-    m_vf.Write();
-
     // There must exist an intersection point, not having one here is an error
     assert(false);
     return Eigen::Vector3d::Zero();
@@ -649,10 +640,10 @@ bool Block::IsEnabled() const
     return m_enabled;
 }
 
-std::vector<double> Block::Loads(double density, double gravity) const
+/*std::vector<double> Block::Loads(double density, double gravity) const
 {
     return { 0, m_vf.Volume() * density * gravity, 0, 0, 0, 0 };
-}
+}*/
 
 VF Block::PlaneOffsetClipping(
     const toolkit::Plane & plane, 
@@ -683,6 +674,11 @@ VF Block::PlaneOffsetClipping(
 
     // Return the pointer to the clipped block
     return clipped;
+}
+
+void Block::SetDensity(double density) 
+{
+    m_density = density;
 }
 
 void Block::SetEnabled(bool enabled)

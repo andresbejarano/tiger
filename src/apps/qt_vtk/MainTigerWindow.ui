@@ -179,12 +179,15 @@
     <addaction name="actionTicTiltingAngleMethod"/>
     <addaction name="actionTicHeightBisectionMethod"/>
     <addaction name="separator"/>
+    <addaction name="actionTicEnableDisableSpecificBlocks"/>
+    <addaction name="actionTicAddBlockWeightLoads"/>
+    <addaction name="actionTicAddBlockForceTorqueLoads"/>
+    <addaction name="actionTicFixBottomBlocks"/>
+    <addaction name="separator"/>
     <addaction name="actionTicCalculateOverlapping"/>
     <addaction name="actionTicCalculateInterfaces"/>
     <addaction name="separator"/>
-    <addaction name="actionTicFixBottomBlocks"/>
-    <addaction name="separator"/>
-    <addaction name="actionTicEquilibriumAnalysis"/>
+    <addaction name="actionTicStaticEquilibriumAnalysis"/>
    </widget>
    <widget class="QMenu" name="menuView">
     <property name="title">
@@ -206,6 +209,7 @@
        <string>Assembly</string>
       </property>
       <addaction name="actionViewAssemblyGeometry"/>
+      <addaction name="actionViewAssemblyBlockIndices"/>
       <addaction name="actionViewAssemblyBoundingBoxes"/>
      </widget>
      <widget class="QMenu" name="menuViewInterfacePolygons">
@@ -287,9 +291,9 @@
     <string>Height-Bisection Method</string>
    </property>
   </action>
-  <action name="actionTicEquilibriumAnalysis">
+  <action name="actionTicStaticEquilibriumAnalysis">
    <property name="text">
-    <string>Equilibrium Analysis</string>
+    <string>Static Equilibrium Analysis</string>
    </property>
   </action>
   <action name="actionViewAxes">
@@ -682,6 +686,34 @@
   <action name="actionNewCyclideGeometry">
    <property name="text">
     <string>Cyclide</string>
+   </property>
+  </action>
+  <action name="actionTicAddBlockWeightLoads">
+   <property name="text">
+    <string>Add Block Weight Loads</string>
+   </property>
+  </action>
+  <action name="actionTicAddBlockForceTorqueLoads">
+   <property name="text">
+    <string>Add Block Force/Torque Loads</string>
+   </property>
+  </action>
+  <action name="actionTicEnableDisableAllBlocks">
+   <property name="text">
+    <string>Enable/Disable All Blocks</string>
+   </property>
+  </action>
+  <action name="actionTicEnableDisableSpecificBlocks">
+   <property name="text">
+    <string>Enable/Disable Specific Blocks</string>
+   </property>
+  </action>
+  <action name="actionViewAssemblyBlockIndices">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Block Indices</string>
    </property>
   </action>
  </widget>
