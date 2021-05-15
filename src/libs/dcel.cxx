@@ -100,7 +100,8 @@ void dcel::Vertex::FixZeros(double threshold)
 
 bool dcel::Vertex::IsSurrounded() const
 {
-	// Initialize the surrounded indicator of the vertex. Assume it is surrounded
+	// Initialize the surrounded indicator of the vertex. Assume it is 
+    // surrounded
 	bool surrounded = true;
 
 	// Get the pointer to the incident half edge of the vertex
@@ -109,8 +110,8 @@ bool dcel::Vertex::IsSurrounded() const
 	// Traverse through the half edges around the vertex
 	do 
 	{
-		// If the current half edge does not have an incident face then indicate the vertex is no 
-		// longer surrounded
+		// If the current half edge does not have an incident face then 
+        // indicate the vertex is no longer surrounded
 		if (!currentHalfedge->face) 
 		{
 			surrounded = false;
@@ -136,7 +137,8 @@ size_t dcel::Vertex::NumberOfIncidentFaces() const
     // Traverse through the half edges around the vertex
     do
     {
-        // If the current half edge has an incident face then increase the counter by one
+        // If the current half edge has an incident face then increase the 
+        // counter by one
         if (currentHalfedge->face)
         {
             faceCount += 1;
@@ -189,8 +191,8 @@ double dcel::Face::Area() const
     // Get the next half edge from the incident half edge of the face
     std::shared_ptr<Halfedge> currentHalfedge = halfedge->next;
 
-    // Get the reference to the coordinates of the start vertex from the incident half edge of the 
-    // face
+    // Get the reference to the coordinates of the start vertex from the 
+    // incident half edge of the face
     Eigen::Vector3d AB = Eigen::Vector3d::Zero(), AC = Eigen::Vector3d::Zero();
     const Eigen::Vector3d & A = halfedge->start->Coords();
 
@@ -201,7 +203,8 @@ double dcel::Face::Area() const
         AB << currentHalfedge->start->Coords() - A;
         AC << currentHalfedge->twin->start->Coords() - A;
 
-        // Calculate the area of triangle between A and the end points of the current half edge
+        // Calculate the area of triangle between A and the end points of the 
+        // current half edge
         area += (AB.cross(AC).norm());
 
         // Move to the next half edge
@@ -399,7 +402,8 @@ bool dcel::Face::HasEvenNumberOfSides() const
 
 bool dcel::Face::IsAtBoundary() const
 {
-    // If the face does not have at least one of its neighbors then it is at a boundary
+    // If the face does not have at least one of its neighbors then it is at a 
+    // boundary
     return !HasAllNeighbors();
 }
 
@@ -408,12 +412,12 @@ bool dcel::Face::IsCoplanar(const toolkit::Plane & plane, double threshold) cons
     // Get the pointer to the incident half edge of the face
     std::shared_ptr<dcel::Halfedge> currentHalfedge = halfedge;
 
-    // Traverse through the half edges of the face and check if their incident start vertices are 
-    // coplanar with the given plane
+    // Traverse through the half edges of the face and check if their incident 
+    // start vertices are coplanar with the given plane
     do
     {
-        // Check if the coordinates of the start vertex of the current half edge lie in the given 
-        // plane. If not then return false
+        // Check if the coordinates of the start vertex of the current half 
+        // edge lie in the given plane. If not then return false
         if (!plane.IsPointInPlane(currentHalfedge->start->Coords(), threshold))
         {
             return false;
@@ -424,7 +428,8 @@ bool dcel::Face::IsCoplanar(const toolkit::Plane & plane, double threshold) cons
 
     } while (currentHalfedge != halfedge);
 
-    // Return true since all vertices of the face were found to be coplanar with the plane
+    // Return true since all vertices of the face were found to be coplanar 
+    // with the plane
     return true;
 }
 
@@ -439,8 +444,9 @@ bool dcel::Face::IsPlanar(double threshold) const
     // Traverse through the half edges of the face
     do 
     {
-        // If the coordinates of the start vertex from the current half edge are not in the plane
-        // of the face then return false. This could happen (although it is expected not to happen)
+        // If the coordinates of the start vertex from the current half edge 
+        // are not in the plane of the face then return false. This could 
+        // happen (although it is expected not to happen)
         if (!plane.IsPointInPlane(currentHalfedge->start->Coords(), threshold)) 
         {
             return false;
@@ -457,7 +463,8 @@ bool dcel::Face::IsPlanar(double threshold) const
 
 bool dcel::Face::IsPointIn(const Eigen::Vector3d & P, double threshold) const
 {
-    // Test 1: Check if point P lies in the same plane of the face, if not then return false
+    // Test 1: Check if point P lies in the same plane of the face, if not then
+    // return false
     if (!Plane().IsPointInPlane(P, threshold))
     {
         return false;
@@ -466,20 +473,22 @@ bool dcel::Face::IsPointIn(const Eigen::Vector3d & P, double threshold) const
     // Get the next half edge to the incident half edge of the face
     std::shared_ptr<Halfedge> currentHalfedge = halfedge->next;
 
-    // Get the coordinates of the start vertex from the incident half edge of the face
+    // Get the coordinates of the start vertex from the incident half edge of 
+    // the face
     const Eigen::Vector3d & v0 = halfedge->start->Coords();
 
-    // Traverse through the half edges of the face. Finish at the previous half edge to the incident
-    // half edge of the face. Here we define a triangle between vertex v0 and the end points of the 
-    // current half edge
+    // Traverse through the half edges of the face. Finish at the previous half
+    // edge to the incident half edge of the face. Here we define a triangle 
+    // between vertex v0 and the end points of the current half edge
     do
     {
-        // Get the references to the coordinates of the end points of the current half edge
+        // Get the references to the coordinates of the end points of the 
+        // current half edge
         const Eigen::Vector3d & v1 = currentHalfedge->start->Coords();
         const Eigen::Vector3d & v2 = currentHalfedge->twin->start->Coords();
 
-        // Test 2: Check if P lies within the triangle defined by points v0, v1 and v2. If that's 
-        // the case then return true
+        // Test 2: Check if P lies within the triangle defined by points v0, v1
+        // and v2. If that's the case then return true
         if (utils::isPointInTriangle(P, v0, v1, v2, threshold))
         {
             return true;
@@ -496,8 +505,8 @@ bool dcel::Face::IsPointIn(const Eigen::Vector3d & P, double threshold) const
     // Traverse through the half edges of the face
     do
     {
-        // Test 3: Check if P lies within the current half edge. If that's the case then return 
-        // true
+        // Test 3: Check if P lies within the current half edge. If that's the 
+        // case then return true
         if (currentHalfedge->IsPointIn(P, threshold))
         {
             return true;
@@ -528,8 +537,8 @@ Eigen::Vector3d dcel::Face::Normal(bool normalize, bool fixZeros, double thresho
     // Traverse through the half edges
     do
     {
-        // Build the two vectors for the current triangle section of the face and calculate its 
-        // normal vector
+        // Build the two vectors for the current triangle section of the face 
+        // and calculate its normal vector
         C << (current->start->Coords() - P).cross(current->twin->start->Coords() - P);
 
         // Add the cross product vector to the normal vector
@@ -574,7 +583,8 @@ void dcel::Face::SetVerticesAttribute(const std::string & name, T value)
     // Traverse through the half edges of the face
     do
     {
-        // Set the start vertex of the half edge with the given attribute name and value
+        // Set the start vertex of the half edge with the given attribute name 
+        // and value
         currentHalfedge->start->Attributes().Set<T>(name, value);
 
         // Move to the next half edge
@@ -646,18 +656,20 @@ void dcel::Face::WriteTriangularGeogebraJs(
     size_t faceIdx;
     assert(m_attributes.Get<size_t>(ATTRIB_INDEX, faceIdx));
 
-    // Get the index of the start vertex from the incident half edge of the face
+    // Get the index of the start vertex from the incident half edge of the 
+    // face
     size_t v0Idx;
     assert(halfedge->start->Attributes().Get<size_t>(ATTRIB_INDEX, v0Idx));
 
-    // Get the pointer to the next half edge from the incident half edge of the face
+    // Get the pointer to the next half edge from the incident half edge of the
+    // face
     std::shared_ptr<Halfedge> currentHalfedge = halfedge->next;
 
     // Keep track of the triangle indices of the face
     size_t triangleIdx = 0;
 
-    // Traverse through the half edges of the face. Finish at the previous half edge from the 
-    // incident half edge of thef ace
+    // Traverse through the half edges of the face. Finish at the previous half
+    // edge from the incident half edge of thef ace
     do 
     {
         // Get the indices of the end points from the current half edge
@@ -692,14 +704,16 @@ int dcel::Face::PointLocation(const Eigen::Vector3d & P, double threshold) const
 
 VF dcel::Face::vf() const
 {
-    // Get the number of vertices of the face. It is the same number of sides of the face
+    // Get the number of vertices of the face. It is the same number of sides 
+    // of the face
     size_t nVertices = CountSides(), index = 0;
 
-    // Initialize the vertex coordinates and vertex indices of the face. Then, resize its vectors
+    // Initialize the vertex coordinates and vertex indices of the face. Then, 
+    // resize its vectors
     VF vf(nVertices, 1);
 
-    // Initialize the vector for the vertex indices of the face. Then, get its reference and resize
-    // it
+    // Initialize the vector for the vertex indices of the face. Then, get its 
+    // reference and resize it
     std::vector<size_t> indices(nVertices);
 
     // Ge the incident half edge of the face
@@ -708,11 +722,12 @@ VF dcel::Face::vf() const
     // Traverse through the half edges of the face
     do
     {
-        // Make a copy of the coordinates from the start vertex of the half edge
+        // Make a copy of the coordinates from the start vertex of the half 
+        // edge
         vf.addVertex(currentHalfedge->start->Coords());
 
-        // Set the index attribute for the start vertex of the current half edge, then increase the 
-        // index value
+        // Set the index attribute for the start vertex of the current half 
+        // edge, then increase the index value
         indices[index++] = index;
 
         // Move to the next half edge
@@ -862,7 +877,8 @@ bool dcel::Halfedge::Intersect(
     // Calculate the midpoint between points Pa and Pb
     P << (pa + pb) / 2.0;
 
-    // Indicate there is a result and set M as the intersection point between the half edges
+    // Indicate there is a result and set M as the intersection point between 
+    // the half edges
     return true;
 }
 
@@ -898,11 +914,12 @@ Eigen::Vector3d dcel::Halfedge::Midpoint(bool fixZeros, double threshold) const
 
 Eigen::Vector3d dcel::Halfedge::Normal(bool normalize, bool fixZeros, double threshold) const
 {
-    // Get the normal vector of the face incident to the half edge. If no face then get a 0 vector
+    // Get the normal vector of the face incident to the half edge. If no face 
+    // then get a 0 vector
     Eigen::Vector3d N1 = (face) ? face->Normal() : Eigen::Vector3d(0.0, 0.0, 0.0);
 
-    // Get the normal vector of the face incident to the twin half edge. If no face then get a 0 
-    // vector
+    // Get the normal vector of the face incident to the twin half edge. If no 
+    // face then get a 0 vector
     Eigen::Vector3d N2 = (twin->face) ? twin->face->Normal() : Eigen::Vector3d(0.0, 0.0, 0.0);
 
     // Calculate the average between both normal vectors
@@ -932,14 +949,15 @@ bool dcel::Halfedge::IsPointIn(const Eigen::Vector3d & P, double threshold) cons
     // Get the direction vector of the half edge
     Eigen::Vector3d AB = Direction();
 
-    // Get the cross product between AP and the direction vector of the half edge
+    // Get the cross product between AP and the direction vector of the half 
+    // edge
     Eigen::Vector3d test = AP.cross(AB);
 
     // Fix the zeros of the test vector
     utils::fixZeros(test, threshold);
 
-    // If the test result is not the zero vector then P does not lie along the line defined by the 
-    // end points of the half edge
+    // If the test result is not the zero vector then P does not lie along the 
+    // line defined by the end points of the half edge
     if (!(test(0) == 0.0 && test(1) == 0.0 && test(2) == 0.0))
     {
         return false;
@@ -953,10 +971,11 @@ bool dcel::Halfedge::IsPointIn(const Eigen::Vector3d & P, double threshold) cons
     utils::fixZero(dotAP, threshold);
     utils::fixZero(dotAB, threshold);
 
-    // If dotAP is equal to 0 then P matches with the start vertex of the half edge. If it is equal 
-    // to dotAB then P matches with the end vertex of the half edge. If it is greater than zero but
-    // less than dotAB then P lies in the line segment between the end points of the half edge. In 
-    // such cases return true. Otherwise, return false
+    // If dotAP is equal to 0 then P matches with the start vertex of the half 
+    // edge. If it is equal to dotAB then P matches with the end vertex of the 
+    // half edge. If it is greater than zero but less than dotAB then P lies in
+    // the line segment between the end points of the half edge. In such cases 
+    // return true. Otherwise, return false
     return (dotAP == 0.0 || dotAP == dotAB || (dotAP > 0.0 && dotAP < dotAB));
 }
 
@@ -1002,7 +1021,8 @@ bool dcel::DCEL::AreFacesEvenSided() const
 
 void dcel::DCEL::AxisAlignedBoundingBox(Eigen::Vector3d & min, Eigen::Vector3d & max) const
 {
-    // Initialize both min and max points using the coordinates of the first vertex of the geometry
+    // Initialize both min and max points using the coordinates of the first 
+    // vertex of the geometry
     min << m_vertices[0]->Coords();
     max << min;
 
@@ -1010,7 +1030,8 @@ void dcel::DCEL::AxisAlignedBoundingBox(Eigen::Vector3d & min, Eigen::Vector3d &
 
     Eigen::Vector3d P = Eigen::Vector3d::Zero();
 
-    // Traverse through the vertices of the geometry and update the corner points respectively
+    // Traverse through the vertices of the geometry and update the corner 
+    // points respectively
     for (size_t i = 1; i < nVertices; i += 1)
     {
         P << m_vertices[i]->Coords();
@@ -1061,24 +1082,25 @@ Eigen::Vector3d dcel::DCEL::Centroid(bool fixZeros, double threshold) const
         // Get the pointer to the current face
         std::shared_ptr<Face> face = *it;
 
-        // Get the reference to the coordinates of the start vertex of the incident half edge of 
-        // the current face
+        // Get the reference to the coordinates of the start vertex of the 
+        // incident half edge of the current face
         const Eigen::Vector3d & v0 = face->halfedge->start->Coords();
 
         // Get the next half edge to the incident half edge of the current face
         std::shared_ptr<Halfedge> currentHalfedge = face->halfedge->next;
 
-        // Traverse through the half edges of the polyhedron. Stop at the previous half edge to the 
-        // incident half edge of the current face. By doing this we traverse the current face by 
-        // triangles
+        // Traverse through the half edges of the polyhedron. Stop at the 
+        // previous half edge to the incident half edge of the current face. By
+        // doing this we traverse the current face by triangles
         do
         {
-            // Get the references to the coordinates of the start and end vertices of the current 
-            // half edge
+            // Get the references to the coordinates of the start and end 
+            // vertices of the current half edge
             const Eigen::Vector3d & v1 = currentHalfedge->start->Coords();
             const Eigen::Vector3d & v2 = currentHalfedge->twin->start->Coords();
 
-            // Calculate the normal vector of the triangle formed by v0, v1 and v2
+            // Calculate the normal vector of the triangle formed by v0, v1 and
+            // v2
             Eigen::Vector3d N = (v1 - v0).cross(v2 - v0);
 
             // Update the volume of the polyhedron
@@ -1109,7 +1131,8 @@ Eigen::Vector3d dcel::DCEL::Centroid(bool fixZeros, double threshold) const
 
 void dcel::DCEL::CheckConsistency() const
 {
-    // Traverse through the vertices of the geometry and check their consistency
+    // Traverse through the vertices of the geometry and check their 
+    // consistency
     for (auto it = m_vertices.begin(); it != m_vertices.end(); ++it)
     {
         (*it)->CheckConsistency();
@@ -1121,7 +1144,8 @@ void dcel::DCEL::CheckConsistency() const
         (*it)->CheckConsistency();
     }
 
-    // Traverse through the half edges of the geometry and check their consistency
+    // Traverse through the half edges of the geometry and check their 
+    // consistency
     for (auto it = m_halfedges.begin(); it != m_halfedges.end(); ++it)
     {
         (*it)->CheckConsistency();
@@ -1165,12 +1189,14 @@ void dcel::DCEL::Clear()
     pvf.reset();
     nvf.reset();
 
-    // Set the location of the vertices with respect to the clipping plane, location values are 
-    // stored at each vertex in the ATTRIB_LOCATION dynamic attribute
+    // Set the location of the vertices with respect to the clipping plane, 
+    // location values are stored at each vertex in the ATTRIB_LOCATION dynamic
+    // attribute
     SetVerticesLocation(plane, threshold);
 
-    // Traverse through the vertices of the original geometry and add them to the respective 
-    // clipped geometry according to its location with respect to the clipping plane
+    // Traverse through the vertices of the original geometry and add them to 
+    // the respective clipped geometry according to its location with respect 
+    // to the clipping plane
     for (auto it = vertices.begin(); it != vertices.end(); ++it) 
     {
         // Get the pointer to the current vertex
@@ -1181,13 +1207,13 @@ void dcel::DCEL::Clear()
         assert(V->Attributes().Get<int>(ATTRIB_LOCATION, location));
         assert(location == 0 || location == 1 || location == -1);
 
-        // Add the vertex in the respective geometry according to its location with respect to the
-        // clipping plane. Store its index since we need it when defining the vertex indices of the
-        // clipped geometries
+        // Add the vertex in the respective geometry according to its location 
+        // with respect to the clipping plane. Store its index since we need it
+        // when defining the vertex indices of the clipped geometries
         switch (location) 
         {
-            // Vertex is located at the plane, it must be added to both positive and negative 
-            // geometries
+            // Vertex is located at the plane, it must be added to both 
+            // positive and negative geometries
             case 0: 
             {
                 size_t positiveIndex = pvf.AddVertex(V->Coords());
@@ -1197,8 +1223,8 @@ void dcel::DCEL::Clear()
                 break;
             }
 
-            // Vertex is located at the positive half space, it must be added to the positive 
-            // geometry
+            // Vertex is located at the positive half space, it must be added 
+            // to the positive geometry
             case 1: 
             {
                 size_t positiveIndex = pvf.AddVertex(V->Coords());
@@ -1206,8 +1232,8 @@ void dcel::DCEL::Clear()
                 break;
             }
 
-            // Vertex is located at the negative half space, it must be added to the negative 
-            // geometry
+            // Vertex is located at the negative half space, it must be added 
+            // to the negative geometry
             case -1: 
             {
                 size_t negativeIndex = nvf.AddVertex(V->Coords());
@@ -1220,8 +1246,8 @@ void dcel::DCEL::Clear()
     // Set all half edges as not visited
     SetHalfedgesAttribute(ATTRIB_VISITED, false);
 
-    // Traverse through the half edges of the original geometry and check if the plane intersects 
-    // with each one of them
+    // Traverse through the half edges of the original geometry and check if 
+    // the plane intersects with each one of them
     for (auto it = halfedges.begin(); it != halfedges.end(); ++it) 
     {
         // Get the pointer to the current half edge
@@ -1231,7 +1257,8 @@ void dcel::DCEL::Clear()
         bool visited;
         assert(H->Attributes().Get<bool>(ATTRIB_VISITED, visited));
 
-        // If the current half edge has been visited then continue with the next half edge
+        // If the current half edge has been visited then continue with the 
+        // next half edge
         if (visited) 
         {
             continue;
@@ -1244,22 +1271,25 @@ void dcel::DCEL::Clear()
         assert(startLocation == 0 || startLocation == 1 || startLocation == -1);
         assert(endLocation == 0 || endLocation == 1 || endLocation == -1);
 
-        // If the endpoints lie at different half spaces then calculate the intersection between 
-        // the plane and the half edge, then store it in both clipped geometries and keep the point
-        // indices in the current half edge and its twin
+        // If the endpoints lie at different half spaces then calculate the 
+        // intersection between the plane and the half edge, then store it in 
+        // both clipped geometries and keep the point indices in the current 
+        // half edge and its twin
         if (startLocation * endLocation == -1) 
         {
             // Get the line segment representin the current half edge
             const toolkit::LineSegment linesegment = H->LineSegment();
 
-            // Calculate the intersection parameter between the plane and the line segment
+            // Calculate the intersection parameter between the plane and the 
+            // line segment
             double t;
             assert(utils::PlaneLineSegmentIntersection(plane, linesegment, t, threshold));
 
             // Calculate the coordinates of the intersection point
             const Eigen::Vector3d intersection = linesegment.At(t);
 
-            // Store the intersection point in both clipped geometries, keep the respective indices
+            // Store the intersection point in both clipped geometries, keep 
+            // the respective indices
             size_t positiveIndex = pvf.AddVertex(intersection);
             size_t negativeIndex = nvf.AddVertex(intersection);
 
@@ -1275,12 +1305,12 @@ void dcel::DCEL::Clear()
         H->twin->Attributes().Set<bool>(ATTRIB_VISITED, true);
     }
 
-    // Initialize a flag that indicates whether a face made exclusively of intersection points has
-    // been defined or not
+    // Initialize a flag that indicates whether a face made exclusively of 
+    // intersection points has been defined or not
     bool intersectionFace = true;
 
-    // Traverse through the faces of the original geometry and generate the vertex indices of the 
-    // clipped geometries
+    // Traverse through the faces of the original geometry and generate the 
+    // vertex indices of the clipped geometries
     for (auto it = faces.begin(); it != faces.end(); ++it) 
     {
         // Get the pointer to the current face
@@ -1289,11 +1319,12 @@ void dcel::DCEL::Clear()
         // Get the pointer to the incident half edge of the current face
         std::shared_ptr<Halfedge> currentHalfedge = F->halfedge;
 
-        // Initialize the vectors for storing the vertex indices of the clipped faces
+        // Initialize the vectors for storing the vertex indices of the clipped
+        // faces
         std::vector<size_t> positiveIndices, negativeIndices;
 
-        // Initialize a flag that indicates whether the current face is made exclusively of 
-        // intersection points or not
+        // Initialize a flag that indicates whether the current face is made 
+        // exclusively of intersection points or not
         bool allIntersectionPoints = true;
 
         // Traverse through the half edges of the current face
@@ -1306,12 +1337,12 @@ void dcel::DCEL::Clear()
             assert(startLocation == 0 || startLocation == 1 || startLocation == -1);
             assert(endLocation == 0 || endLocation == 1 || endLocation == -1);
 
-            // Add the vertex index in the respective geometry according to its location with 
-            // respect to the clipping plane
+            // Add the vertex index in the respective geometry according to its
+            // location with respect to the clipping plane
             switch (startLocation) 
             {
-                // Vertex is located at the plane, it must be added to both positive and negative 
-                // geometries
+                // Vertex is located at the plane, it must be added to both 
+                // positive and negative geometries
                 case 0: 
                 {
                     size_t positiveIndex, negativeIndex;
@@ -1322,23 +1353,23 @@ void dcel::DCEL::Clear()
                     break;
                 }
 
-                // Vertex is located at the positive half space, it must be added to the positive 
-                // geometry
+                // Vertex is located at the positive half space, it must be 
+                // added to the positive geometry
                 case 1: 
                 {
                     size_t positiveIndex;
                     assert(currentHalfedge->start->Attributes().Get<size_t>(ATTRIB_POSITIVE_INDEX, positiveIndex));
                     positiveIndices.push_back(positiveIndex);
 
-                    // The vertex is not at the intersection plane, so the face is not made 
-                    // exclusively of intersection points
+                    // The vertex is not at the intersection plane, so the face
+                    // is not made exclusively of intersection points
                     allIntersectionPoints = false;
 
                     break;
                 }
 
-                // Vertex is located at the negative half space, it must be added to the negative 
-                // geometry
+                // Vertex is located at the negative half space, it must be 
+                // added to the negative geometry
                 case -1: 
                 {
                     size_t negativeIndex;
@@ -1353,8 +1384,9 @@ void dcel::DCEL::Clear()
                 }
             }
 
-            // If both end points lie at different half spaces then get the vertex index of the
-            // intersection point to both positive and negative geometries
+            // If both end points lie at different half spaces then get the 
+            // vertex index of the intersection point to both positive and 
+            // negative geometries
             if (startLocation * endLocation == -1) 
             {
                 size_t positiveIndex, negativeIndex;
@@ -1384,8 +1416,8 @@ void dcel::DCEL::Clear()
         intersectionFace = intersectionFace && allIntersectionPoints;
     }
 
-    // If no face of the clipped geometries is made exclusively of intersection points then we 
-    // need to generate them
+    // If no face of the clipped geometries is made exclusively of intersection
+    // points then we need to generate them
     if (!intersectionFace) 
     {
         // Set the half edges of the original geometry as not visited
@@ -1397,8 +1429,9 @@ void dcel::DCEL::Clear()
         // 
         int startLocation, endLocation;
 
-        // Traverse through the half edges of the original geometry and keep the pointer to the 
-        // first half edge that intersects the clipping plane
+        // Traverse through the half edges of the original geometry and keep 
+        // the pointer to the first half edge that intersects the clipping 
+        // plane
         for (auto it = halfedges.begin(); it != halfedges.end(); it += 1) 
         {
             // Get the pointer to the current half edge
@@ -1408,7 +1441,8 @@ void dcel::DCEL::Clear()
             bool visited;
             assert(H->Attributes().Get<bool>(ATTRIB_VISITED, visited));
 
-            // If the current half edge has been visited then continue with the next one
+            // If the current half edge has been visited then continue with the
+            // next one
             if (visited) 
             {
                 continue;
@@ -1420,8 +1454,9 @@ void dcel::DCEL::Clear()
             assert(startLocation == 0 || startLocation == 1 || startLocation == -1);
             assert(endLocation == 0 || endLocation == 1 || endLocation == -1);
 
-            // If the current half edge has both end points at different half spaces then exit the 
-            // for loop since we don't need to keep searching
+            // If the current half edge has both end points at different half 
+            // spaces then exit the for loop since we don't need to keep 
+            // searching
             if (startLocation * endLocation == -1) 
             {
                 intersectHalfedge = H;
@@ -1532,7 +1567,8 @@ void dcel::DCEL::Clear()
 
 VF dcel::DCEL::Clip(const toolkit::Plane & plane, const double threshold) const
 {
-    // Initialize the lists to store the vertices and faces of the clipped geometry
+    // Initialize the lists to store the vertices and faces of the clipped 
+    // geometry
     std::list<Eigen::Vector3d> clippedVertices;
     std::list<std::vector<size_t>> clippedFaces;
 
@@ -1563,8 +1599,8 @@ void dcel::DCEL::ClippedFaces(
 
     size_t index = 0;
 
-    // Traverse through the faces of the original geometry and generate the faces of the clipped 
-    // geometry
+    // Traverse through the faces of the original geometry and generate the 
+    // faces of the clipped geometry
     for (auto it = m_faces.begin(); it != m_faces.end(); ++it)
     {
         // Get the pointer to the current face
@@ -1573,11 +1609,12 @@ void dcel::DCEL::ClippedFaces(
         // Get the pointer to the incident half edge of the current face
         std::shared_ptr<Halfedge> currentHalfedge = F->halfedge;
 
-        // Initialize the vectors for storing the vertex indices of the clipped faces
+        // Initialize the vectors for storing the vertex indices of the clipped
+        // faces
         std::vector<size_t> indices;
 
-        // Initialize a flag that indicates whether the current face is made exclusively of 
-        // intersection points or not
+        // Initialize a flag that indicates whether the current face is made 
+        // exclusively of intersection points or not
         allIntersectionPoints = true;
 
         // Traverse through the half edges of the current face
@@ -1589,23 +1626,24 @@ void dcel::DCEL::ClippedFaces(
             assert(startLocation == 0 || startLocation == 1 || startLocation == -1);
             assert(endLocation == 0 || endLocation == 1 || endLocation == -1);
 
-            // Add the vertex index in the respective geometry according to its location with 
-            // respect to the clipping plane
+            // Add the vertex index in the respective geometry according to its
+            // location with respect to the clipping plane
             if (startLocation == 0 || startLocation == -1)
             {
                 assert(currentHalfedge->start->Attributes().Get<size_t>(ATTRIB_INDEX, index));
                 indices.push_back(index);
 
-                // The vertex is not at the intersection plane, so the face is not made exclusively
-                // of intersection points
+                // The vertex is not at the intersection plane, so the face is 
+                // not made exclusively of intersection points
                 if (startLocation == -1)
                 {
                     allIntersectionPoints = false;
                 }
             }
 
-            // If both end points lie at different half spaces then get the vertex index of the
-            // intersection point to both positive and negative geometries
+            // If both end points lie at different half spaces then get the 
+            // vertex index of the intersection point to both positive and 
+            // negative geometries
             if (startLocation * endLocation == -1)
             {
                 assert(currentHalfedge->Attributes().Get<size_t>(ATTRIB_INDEX, index));
@@ -1634,16 +1672,16 @@ void dcel::DCEL::ClippedElements(
     std::list<std::vector<size_t>> & clippedFaces, 
     double threshold) const
 {
-    // Initialize a flag that indicates there are intersection points between the geometry and the 
-    // plane
+    // Initialize a flag that indicates there are intersection points between 
+    // the geometry and the plane
     size_t pointsInPlane = 0;
 
-    // Populate the vector with the clipped vertices that lie at the positive half space of the 
-    // clipping plane
+    // Populate the vector with the clipped vertices that lie at the positive 
+    // half space of the clipping plane
     ClippedVertices(plane, clippedVertices, pointsInPlane, threshold);
 
-    // Initialize a flag that indicates whether a face made exclusively of intersection points has
-    // been defined or not
+    // Initialize a flag that indicates whether a face made exclusively of 
+    // intersection points has been defined or not
     bool faceAtClippingPlane = false, visited = false;
 
     // 
@@ -1651,8 +1689,9 @@ void dcel::DCEL::ClippedElements(
 
     int startLocation, endLocation;
 
-    // Check if there are more than two clipped vertices that lie at the clipping plane and there 
-    // is no face made of such vertices. If so then we need to define such face
+    // Check if there are more than two clipped vertices that lie at the 
+    // clipping plane and there is no face made of such vertices. If so then we
+    // need to define such face
     if (pointsInPlane > 2 && !faceAtClippingPlane)
     {
         // Set the half edges of the original geometry as not visited
@@ -1661,8 +1700,9 @@ void dcel::DCEL::ClippedElements(
         // 
         std::shared_ptr<Halfedge> intersectHalfedge = nullptr;
 
-        // Traverse through the half edges of the original geometry and keep the pointer to the 
-        // first half edge that intersects the clipping plane
+        // Traverse through the half edges of the original geometry and keep 
+        // the pointer to the first half edge that intersects the clipping 
+        // plane
         for (auto it = m_halfedges.begin(); it != m_halfedges.end(); it += 1)
         {
             // Get the pointer to the current half edge
@@ -1671,7 +1711,8 @@ void dcel::DCEL::ClippedElements(
             // Get the visited attribute of the half edge
             assert(H->Attributes().Get<bool>(ATTRIB_VISITED, visited));
 
-            // If the current half edge has been visited then continue with the next one
+            // If the current half edge has been visited then continue with the
+            // next one
             if (visited)
             {
                 continue;
@@ -1683,8 +1724,9 @@ void dcel::DCEL::ClippedElements(
             assert(startLocation == 0 || startLocation == 1 || startLocation == -1);
             assert(endLocation == 0 || endLocation == 1 || endLocation == -1);
 
-            // If the current half edge has both end points at different half spaces then exit the 
-            // for loop since we don't need to keep searching
+            // If the current half edge has both end points at different half 
+            // spaces then exit the for loop since we don't need to keep 
+            // searching
             if (startLocation * endLocation == -1)
             {
                 // 
@@ -1714,7 +1756,8 @@ void dcel::DCEL::ClippedElements(
             assert(endLocation == 0 || endLocation == 1 || endLocation == -1);
             assert(startLocation * endLocation == -1);
 
-            // Initialize the vectors for storing the vertex indices of the clipped faces
+            // Initialize the vectors for storing the vertex indices of the 
+            // clipped faces
             std::vector<size_t> indices;
 
             // 
@@ -1722,11 +1765,8 @@ void dcel::DCEL::ClippedElements(
             assert(intersectHalfedge->Attributes().Get<size_t>(ATTRIB_INDEX, index));
             indices.push_back(index);
 
-            // Make a copy of the coordinates of the intersection point. We need it to define the 
-            // orientation of the final faces for the clipped geometries
-            //Eigen::Vector3d lastP(vf.V[index]);
-
-            // Get the pointer to the twin half edge of the intersected half edge
+            // Get the pointer to the twin half edge of the intersected half 
+            // edge
             std::shared_ptr<Halfedge> currentHalfedge = intersectHalfedge->twin->next;
 
             // 
@@ -1738,33 +1778,12 @@ void dcel::DCEL::ClippedElements(
                 assert(startLocation == 0 || startLocation == 1 || startLocation == -1);
                 assert(endLocation == 0 || endLocation == 1 || endLocation == -1);
 
-                // If the current half edge has both end points at different half spaces then add 
-                // its vertex index to the last faces
+                // If the current half edge has both end points at different 
+                // half spaces then add its vertex index to the last faces
                 if (startLocation * endLocation == -1)
                 {
                     // 
                     assert(currentHalfedge->Attributes().Get<size_t>(ATTRIB_INDEX, index));
-
-                    // Get the reference to the intersection point
-                    //const Eigen::Vector3d & currentP = vf.V[index];
-
-                    // Check if the last intersection point and the current one are making a left 
-                    // turn with respect to the clipping plane
-                    //int isLeft = utils::IsLeftTurn(lastP, currentP, plane, threshold);
-                    //assert(isLeft != 0);
-
-                    // 
-                    //if (isLeft == 1)
-                    //{
-                    //    indices.insert(indices.begin(), index);
-                    //}
-                    //else
-                    //{
-                    //    indices.push_back(index);
-                    //}
-
-                    // Update the last intersection point
-                    //lastP << currentP;
 
                     indices.push_back(index);
 
@@ -1814,12 +1833,14 @@ void dcel::DCEL::ClippedVertices(
 
     toolkit::LineSegment linesegment;
 
-    // Set the location of the vertices with respect to the clipping plane, location values are 
-    // stored at each vertex in the ATTRIB_LOCATION dynamic attribute
+    // Set the location of the vertices with respect to the clipping plane, 
+    // location values are stored at each vertex in the ATTRIB_LOCATION dynamic
+    // attribute
     SetVerticesLocation(plane, threshold);
 
-    // Traverse through the vertices of the original geometry and add them to the clipped geometry 
-    // according to its location with respect to the clipping plane
+    // Traverse through the vertices of the original geometry and add them to 
+    // the clipped geometry according to its location with respect to the 
+    // clipping plane
     for (auto it = m_vertices.begin(); it != m_vertices.end(); ++it)
     {
         // Get the pointer to the current vertex
@@ -1829,19 +1850,20 @@ void dcel::DCEL::ClippedVertices(
         assert(V->Attributes().Get<int>(ATTRIB_LOCATION, location));
         assert(location == 0 || location == 1 || location == -1);
 
-        // Add the vertex in the respective geometry according to its location with respect to the
-        // clipping plane. Store its index since we need it when defining the vertex indices of the
-        // clipped geometries
+        // Add the vertex in the respective geometry according to its location 
+        // with respect to the clipping plane. Store its index since we need it
+        // when defining the vertex indices of the clipped geometries
         if (location == 0 || location == -1)
         {
-            // Insert the coordinates of the vertex in the list of clipped vertices
+            // Insert the coordinates of the vertex in the list of clipped 
+            // vertices
             clippedVertices.push_back(V->Coords());
 
             // Store the index of the clipped vertex in the original vertex
             V->Attributes().Set<size_t>(ATTRIB_INDEX, vIdx++);
 
-            // If the current vertex is at the clipping plane then indicate the plane touches a 
-            // vertex of the original geometry
+            // If the current vertex is at the clipping plane then indicate the
+            // plane touches a vertex of the original geometry
             if (location == 0)
             {
                 pointsInPlane += 1;
@@ -1851,8 +1873,8 @@ void dcel::DCEL::ClippedVertices(
 
     SetHalfedgesAttribute(ATTRIB_VISITED, false);
 
-    // Traverse through the half edges of the original geometry and check if the plane intersects 
-    // with each one of them
+    // Traverse through the half edges of the original geometry and check if 
+    // the plane intersects with each one of them
     for (auto it = m_halfedges.begin(); it != m_halfedges.end(); ++it)
     {
         // Get the pointer to the current half edge
@@ -1861,7 +1883,8 @@ void dcel::DCEL::ClippedVertices(
         // Get the visited attribute of the half edge
         assert(H->Attributes().Get<bool>(ATTRIB_VISITED, visited));
 
-        // If the current half edge has been visited then continue with the next half edge
+        // If the current half edge has been visited then continue with the 
+        // next half edge
         if (visited)
         {
             continue;
@@ -1873,21 +1896,25 @@ void dcel::DCEL::ClippedVertices(
         assert(startLocation == 0 || startLocation == 1 || startLocation == -1);
         assert(endLocation == 0 || endLocation == 1 || endLocation == -1);
 
-        // If the endpoints lie at different half spaces then calculate the intersection between 
-        // the plane and the half edge, then store it in both clipped geometries and keep the point
-        // indices in the current half edge and its twin
+        // If the endpoints lie at different half spaces then calculate the 
+        // intersection between the plane and the half edge, then store it in 
+        // both clipped geometries and keep the point indices in the current 
+        // half edge and its twin
         if (startLocation * endLocation == -1)
         {
             // Get the line segment representing the current half edge
             linesegment = H->LineSegment();
 
-            // Calculate the intersection parameter between the plane and the line segment
+            // Calculate the intersection parameter between the plane and the 
+            // line segment
             assert(algorithms::planeLineSegmentIntersection(plane, linesegment, t, threshold));
             
-            // Calculate the intersection point and store it in the list of clipped vertices
+            // Calculate the intersection point and store it in the list of 
+            // clipped vertices
             clippedVertices.push_back(linesegment.At(t));
 
-            // Indicate there is an intersection point between the geometry and the plane
+            // Indicate there is an intersection point between the geometry and
+            // the plane
             pointsInPlane += 1;
 
             // Store the indices in the current half edge and its twin
@@ -1911,7 +1938,8 @@ void dcel::DCEL::CloseLoops()
     // Traverse through the half edges
     for (auto itH = m_halfedges.begin(); itH != m_halfedges.end(); ++itH)
     {
-        // If the current half edge has an incident face then move to the next half edge
+        // If the current half edge has an incident face then move to the next 
+        // half edge
         if ((*itH)->face)
         {
             continue;
@@ -1923,24 +1951,27 @@ void dcel::DCEL::CloseLoops()
         // Traverse through the remaining half edges
         for (jtH = ++jtH; jtH != m_halfedges.end(); ++jtH)
         {
-            // If the current half edge has an incident face then move to the next half edge
+            // If the current half edge has an incident face then move to the 
+            // next half edge
             if ((*jtH)->face)
             {
                 continue;
             }
 
-            // If the end vertex of the i-th half edge is the same as the start vertex of the j-th 
-            // half edge and the i-th half edge does not have a next and the j-th half edge does 
-            // not have a previous then link them together
+            // If the end vertex of the i-th half edge is the same as the start
+            // vertex of the j-th half edge and the i-th half edge does not 
+            // have a next and the j-th half edge does not have a previous then
+            // link them together
             if ((*itH)->twin->start == (*jtH)->start && !(*itH)->next && !(*jtH)->previous)
             {
                 (*itH)->next = (*jtH);
                 (*jtH)->previous = (*itH);
             }
 
-            // If the start vertex of the i-th half edge is the same as the end vertex of the j-th 
-            // half edge and the i-th half edge does not have a previous and the j-th half edge 
-            // does not have a next then link them together
+            // If the start vertex of the i-th half edge is the same as the end
+            // vertex of the j-th half edge and the i-th half edge does not 
+            // have a previous and the j-th half edge does not have a next then
+            // link them together
             else if ((*itH)->start == (*jtH)->twin->start && !(*itH)->previous && !(*jtH)->next)
             {
                 (*itH)->previous = (*jtH);
@@ -1957,7 +1988,8 @@ dcel::DCEL dcel::DCEL::Copy() const
 
 VF dcel::DCEL::Dual() const
 {
-    // Initialize the lists to store the vertices and faces of the dual geometry
+    // Initialize the lists to store the vertices and faces of the dual 
+    // geometry
     std::list<Eigen::Vector3d> dualVertices;
     std::list<std::vector<size_t>> dualFaces;
 
@@ -1986,8 +2018,8 @@ void dcel::DCEL::DualElements(
     // 
     size_t vIdx = 0;
 
-    // Set the faces of the geometry as not visited. This use this attribute for keeping track of 
-    // the faces with a dual vertex in the dual geometry
+    // Set the faces of the geometry as not visited. This use this attribute 
+    // for keeping track of the faces with a dual vertex in the dual geometry
     SetFacesAttribute(ATTRIB_VISITED, false);
 
     // Traverse through the vertices of the geometry
@@ -1996,7 +2028,8 @@ void dcel::DCEL::DualElements(
         // Get the pointer to the current vertex
         std::shared_ptr<Vertex> vertex = *it;
 
-        // If the current vertex is not surrounded then continue with the next one
+        // If the current vertex is not surrounded then continue with the next 
+        // one
         if (!vertex->IsSurrounded())
         {
             continue;
@@ -2008,8 +2041,8 @@ void dcel::DCEL::DualElements(
         // Get the pointer to the incident half edge of the vertex
         std::shared_ptr<Halfedge> currentHalfedge = vertex->halfedge;
 
-        // Traverse through the half edges around the vertex and define the geometry of its 
-        // respective dual face
+        // Traverse through the half edges around the vertex and define the 
+        // geometry of its respective dual face
         do
         {
             // Get the pointer to the incident face to the current half edge
@@ -2022,19 +2055,19 @@ void dcel::DCEL::DualElements(
             // Initialize the index of the dual vertex of the face
             size_t dualIndex = 0;
 
-            // If the current face is not visited then store the coordinates of its respective dual
-            // vertex and store the respective info. Otherwise, get the index of the dual vertex
+            // If the current face is not visited then store the coordinates of
+            // its respective dual vertex and store the respective info. 
+            // Otherwise, get the index of the dual vertex
             if (!isVisited)
             {
-                // Store the coordinates of the barycenter from the current face in the dual 
-                // geometry. Then, indicate the face has been visited and store its dual vertex 
-                // index
-                //dualIndex = dual.AddVertex(face->Barycenter());
+                // Store the coordinates of the centroid from the current face 
+                // in the dual geometry. Then, indicate the face has been 
+                // visited and store its dual vertex index
                 dualVertices.push_back(face->Centroid());
 
-                // Indicate the face has been visited (in other words, there exist its respective 
-                // dual vertex coordinates in the dual geometry. Then, store the index of the dual 
-                // vertex
+                // Indicate the face has been visited (in other words, there 
+                // exist its respective dual vertex coordinates in the dual 
+                // geometry. Then, store the index of the dual vertex
                 face->Attributes().Set<bool>(ATTRIB_VISITED, true);
                 face->Attributes().Set<size_t>(ATTRIB_DUAL_INDEX, vIdx);
 
@@ -2046,8 +2079,8 @@ void dcel::DCEL::DualElements(
                 assert(face->Attributes().Get<size_t>(ATTRIB_DUAL_INDEX, dualIndex));
             }
 
-            // Insert the index of the dual vertex into the indices of the dual face (insert it at 
-            // the begining of the indices vector)
+            // Insert the index of the dual vertex into the indices of the dual
+            // face (insert it at the begining of the indices vector)
             indices.insert(indices.begin(), dualIndex);
 
             // Move to the next half edge around the vertex
@@ -2059,7 +2092,8 @@ void dcel::DCEL::DualElements(
         dualFaces.push_back(indices);
     }
 
-    // Remove the visited and dual index dynamic attributes from the faces of the geometry
+    // Remove the visited and dual index dynamic attributes from the faces of 
+    // the geometry
     RemoveFacesAttribute(ATTRIB_VISITED);
     RemoveFacesAttribute(ATTRIB_DUAL_INDEX);
 }
@@ -2100,12 +2134,13 @@ bool dcel::DCEL::Intersects(const toolkit::Plane & plane, double threshold) cons
     // Set the half edges of the geometry as not visited
     SetHalfedgesAttribute(ATTRIB_VISITED, false);
 
-    // Initialize the intersection indicator. It will be true if at least one vertex is in the 
-    // plane, or the end points of a half edge lie in different half spaces defined by the plane
+    // Initialize the intersection indicator. It will be true if at least one 
+    // vertex is in the plane, or the end points of a half edge lie in 
+    // different half spaces defined by the plane
     bool intersects = false;
 
-    // Traverse through the half edges and check if any of them has been split. If so, stop 
-    // searching since the plane intersects the geometry
+    // Traverse through the half edges and check if any of them has been split.
+    // If so, stop searching since the plane intersects the geometry
     for (auto it = m_halfedges.begin(); it != m_halfedges.end(); ++it)
     {
         // Get the pointer to the current half edge
@@ -2126,8 +2161,8 @@ bool dcel::DCEL::Intersects(const toolkit::Plane & plane, double threshold) cons
         assert(H->start->Attributes().Get<int>(ATTRIB_LOCATION, locA));
         assert(H->twin->start->Attributes().Get<int>(ATTRIB_LOCATION, locB));
 
-        // If at least one of the vertices is at the plane, or they are at different half spaces 
-        // then the plane intersects the geometry
+        // If at least one of the vertices is at the plane, or they are at 
+        // different half spaces then the plane intersects the geometry
         if (locA * locB <= 0) 
         {
             intersects = true;
@@ -2149,7 +2184,8 @@ bool dcel::DCEL::Intersects(const toolkit::Plane & plane, double threshold) cons
 
 bool dcel::DCEL::IsPointIn(const Eigen::Vector3d & point, double threshold) const
 {
-    // Traverse through the faces and check the location of the point with respect of them
+    // Traverse through the faces and check the location of the point with 
+    // respect of them
     for (auto it = m_faces.begin(); it != m_faces.end(); ++it)
     {
         // Get the pointer to the current face
@@ -2158,15 +2194,15 @@ bool dcel::DCEL::IsPointIn(const Eigen::Vector3d & point, double threshold) cons
         // Get the location of the point with respect of the plane of the face
         int location = F->PointLocation(point, threshold);
 
-        // If the point is in front of the plane then it is not inside or in the geometry, then 
-        // return false
+        // If the point is in front of the plane then it is not inside or in 
+        // the geometry, then return false
         if (location > 0) 
         {
             return false;
         }
 
-        // If the point is in the plane then check if it is in the face (including its edges and 
-        // vertices)
+        // If the point is in the plane then check if it is in the face 
+        // (including its edges and vertices)
         if (location == 0) 
         {
             return F->IsPointIn(point, threshold);
@@ -2182,14 +2218,15 @@ VF dcel::DCEL::LineSegments() const
     // Label all half edges as not visited
     SetHalfedgesAttribute(ATTRIB_VISITED, false);
 
-    // Initialize the vertex coordinates and vertex indices for the line segments representing the
-    // edges of the geometry
+    // Initialize the vertex coordinates and vertex indices for the line 
+    // segments representing the edges of the geometry
     VF vf(m_vertices.size(), m_halfedges.size() / 2);
 
     // Initialize the vertex index for the line segments
     size_t i = 0;
 
-    // Traverse through the half edges of the geometry and define their geometric information
+    // Traverse through the half edges of the geometry and define their 
+    // geometric information
     for (auto it = m_halfedges.begin(); it != m_halfedges.end(); ++it)
     {
         // Get the pointer to the current half edge
@@ -2199,28 +2236,19 @@ VF dcel::DCEL::LineSegments() const
         bool visited;
         assert(halfedge->Attributes().Get<bool>(ATTRIB_VISITED, visited));
 
-        // If the current half edge has been visited then continue to the next half edge
+        // If the current half edge has been visited then continue to the next 
+        // half edge
         if (visited)
         {
             continue;
         }
 
-        // Get the references to the coordinates of the end points from the current halfedge
-        //const Eigen::Vector3d & v0 = halfedge->start->Coords();
-        //const Eigen::Vector3d & v1 = halfedge->twin->start->Coords();
-
         // Insert the coordinates of the end points
         vf.addVertex(halfedge->start->Coords());
         vf.addVertex(halfedge->twin->start->Coords());
-        //vf.V.emplace_back(v0);
-        //vf.V.emplace_back(v1);
 
         // Define the indices for the current line segment
         vf.addFace(i, i + 1);
-        //vf.F.emplace_back();
-        //std::vector<size_t> & indices = vf.F[vf.F.size()];
-        //indices.push_back(i);
-        //indices.push_back(i + 1);
 
         // Update the vertex indices for the next line segment
         i += 2;
@@ -2242,7 +2270,8 @@ void dcel::DCEL::LoadDcelFile(const std::string & filename)
 
     std::ifstream file(filename);
 
-    // First line has the number of vertices, faces and half edges of the geometry
+    // First line has the number of vertices, faces and half edges of the 
+    // geometry
     size_t nV, nF, nH;
     file >> nV >> nF >> nH;
     assert(nV > 0 && nF > 0 && nH > 0);
@@ -2342,18 +2371,14 @@ void dcel::DCEL::LoadDcelFile(const std::string & filename)
 
 void dcel::DCEL::NormalizeVertices(double radius, const Eigen::Vector3d & C)
 {
-    // Traverse through the vertices of the DCEL, normalize their coordinates and scale to the 
-    // given radius
+    // Traverse through the vertices of the DCEL, normalize their coordinates 
+    // and scale to the given radius
     for (auto it = m_vertices.begin(); it != m_vertices.end(); ++it)
     {
-        // Make a copy of the normalized coordinates of the current vertex. Then, translate it with
-        // respect of the given center and multiply by the given radius
+        // Make a copy of the normalized coordinates of the current vertex. 
+        // Then, translate it with respect of the given center and multiply by 
+        // the given radius
         Eigen::Vector3d P = ((*it)->Coords().normalized() + C) * radius;
-
-        // Normalize the coordinates and multiply by the given radius
-        //P.normalize();
-        //P += C;
-        //P *= radius;
 
         // Set the new coordinates of the current vertex
         (*it)->Coords(P);
@@ -2384,8 +2409,8 @@ size_t dcel::DCEL::NumberOfInternalEdges() const
             continue;
         }
 
-        // If both half edge and its twin have an incident face then update the count of internal 
-        // edges
+        // If both half edge and its twin have an incident face then update the
+        // count of internal edges
         if (halfedge->face && halfedge->twin->face)
         {
             nInternal += 1;
@@ -2405,11 +2430,12 @@ size_t dcel::DCEL::NumberOfInternalEdges() const
 
 size_t dcel::DCEL::NumberOfTriangles() const
 {
-    // Initialize the counter for the number of triangles required for representing the geometry
+    // Initialize the counter for the number of triangles required for 
+    // representing the geometry
     size_t nTriangles = 0;
 
-    // Traverse through the faces of the geometry and count the number of triangles required for 
-    // each face in the geometry
+    // Traverse through the faces of the geometry and count the number of 
+    // triangles required for each face in the geometry
     for (auto it = m_faces.begin(); it != m_faces.end(); ++it)
     {
         nTriangles += (*it)->CountTriangles();
@@ -2426,20 +2452,22 @@ size_t dcel::DCEL::NumberOfVertices() const
 
 void dcel::DCEL::QuadrangulateFaces()
 {
-    // Split half edges into two half edges. This function sets the ATTRIB_ORIGINAL attribute on 
-    // the original vertices of the DCEL
+    // Split half edges into two half edges. This function sets the 
+    // ATTRIB_ORIGINAL attribute on the original vertices of the DCEL
     SplitHalfedgesByMidpoint();
 
     // Get the number of original faces in the geometric domain
     size_t nOriginalFaces = m_faces.size();
 
-    // Traverse through the original faces and subdivide them into quadrilaterals
+    // Traverse through the original faces and subdivide them into 
+    // quadrilaterals
     for (size_t i = 0; i < nOriginalFaces; i += 1)
     {
         SubdivideFaceIntoQuadrilaterals(m_faces[i]);
     }
 
-    // Remove the ATTRIB_ORIGINAL and ATTRIB_VISITED attributes from the vertices in the DCEL
+    // Remove the ATTRIB_ORIGINAL and ATTRIB_VISITED attributes from the 
+    // vertices in the DCEL
     RemoveVerticesAttribute(ATTRIB_ORIGINAL);
     RemoveVerticesAttribute(ATTRIB_VISITED);
 }
@@ -2487,7 +2515,8 @@ void dcel::DCEL::Scale(double factor, const Eigen::Vector3d & C)
     // Traverse through the vertices vector and scale the vertices
     for (auto it = m_vertices.begin(); it != m_vertices.end(); ++it)
     {
-        // Scale the coordinates with respect of the scale reference point and the scale factor
+        // Scale the coordinates with respect of the scale reference point and 
+        // the scale factor
         const Eigen::Vector3d P = C + (((*it)->Coords() - C) * factor);
 
         // Set the new coordinates for the current vertex
@@ -2504,7 +2533,8 @@ void dcel::DCEL::Set(const VF & vf)
     size_t nVertices = vf.countVertices(), i = 0, j = 0, nFaces = vf.countFaces(), nIndices = 0, 
         prevIndex = 0, currIndex = 0, nextIndex = 0, nextIdx = 0;
     
-    // Resize the vertices vector using the number of vertices from the given geometry
+    // Resize the vertices vector using the number of vertices from the given 
+    // geometry
     m_vertices.resize(nVertices, nullptr);
 
     // Traverse through the array of vertices and generate the DCEL vertices
@@ -2513,8 +2543,8 @@ void dcel::DCEL::Set(const VF & vf)
         m_vertices[i] = std::make_shared<Vertex>(vf.Vertex(i));
     }
 
-    // Initialize an object to be used as a map for the half edges to be found by their start and 
-    // end vertices indexes
+    // Initialize an object to be used as a map for the half edges to be found 
+    // by their start and end vertices indexes
     std::unordered_map<std::string, std::shared_ptr<Halfedge>> vToH;
 
     // 
@@ -2522,7 +2552,8 @@ void dcel::DCEL::Set(const VF & vf)
 
     m_halfedges.resize(vf.countEdges() * 2, nullptr);
 
-    // Traverse through the vertex indices and generate the faces and half edges of the DCEL
+    // Traverse through the vertex indices and generate the faces and half 
+    // edges of the DCEL
     for (i = 0; i < nFaces; i += 1)
     {
         // Initialize the current DCEL face
@@ -2537,7 +2568,8 @@ void dcel::DCEL::Set(const VF & vf)
         // Traverse through the vertex indices of the current face
         for (j = 0; j < nIndices; j += 1)
         {
-            // Get the indexes for the previous, current and next vertices of the face
+            // Get the indexes for the previous, current and next vertices of 
+            // the face
             prevIndex = (j == 0) ? indices[nIndices - 1] : indices[j - 1];
             currIndex = indices[j];
             nextIndex = (j == nIndices - 1) ? indices[0] : indices[j + 1];
@@ -2554,18 +2586,18 @@ void dcel::DCEL::Set(const VF & vf)
             // Define the key for the previous half edge
             std::string prevKey = std::to_string(prevIndex) + '-' + std::to_string(currIndex);
 
-            // If the previous half edge does not exist then generate it and its twin. Otherwise, 
-            // get it directly
+            // If the previous half edge does not exist then generate it and 
+            // its twin. Otherwise, get it directly
             if (vToH.find(prevKey) == vToH.end())
             {
-                // Generate the previous half edge and set its start vertex, end vertex and incident
-                // face
+                // Generate the previous half edge and set its start vertex, 
+                // end vertex and incident face
                 previous = std::make_shared<Halfedge>();
                 previous->start = prevVertex;
                 previous->face = m_faces[i];
 
-                // Generate the twin half edge and set its start vertex, end vertex and twin half 
-                // edge
+                // Generate the twin half edge and set its start vertex, end 
+                // vertex and twin half edge
                 std::shared_ptr<Halfedge> twin = std::make_shared<Halfedge>();
                 twin->start = currVertex;
                 twin->twin = previous;
@@ -2573,22 +2605,22 @@ void dcel::DCEL::Set(const VF & vf)
                 // Set the twin to the previous half edge
                 previous->twin = twin;
 
-                // If the previous vertex doesn't have an incident half edge then use the previous 
-                // half edge
+                // If the previous vertex doesn't have an incident half edge 
+                // then use the previous half edge
                 if (!prevVertex->halfedge)
                 {
                     prevVertex->halfedge = previous;
                 }
 
-                // If the current vertex doesn't have an incident half edge then use the twin half 
-                // edge
+                // If the current vertex doesn't have an incident half edge 
+                // then use the twin half edge
                 if (!currVertex->halfedge)
                 {
                     currVertex->halfedge = twin;
                 }
 
-                // If the current face doesn't have an incident half edge then use the previous half
-                // edge
+                // If the current face doesn't have an incident half edge then 
+                // use the previous halfedge
                 if (!m_faces[i]->halfedge)
                 {
                     m_faces[i]->halfedge = previous;
@@ -2597,11 +2629,13 @@ void dcel::DCEL::Set(const VF & vf)
                 // Define the key for the twin half edge
                 std::string twinKey = std::to_string(currIndex) + '-' + std::to_string(prevIndex);
 
-                // Insert the previous and twin half edges into the half edges map
+                // Insert the previous and twin half edges into the half edges 
+                // map
                 vToH.insert(std::make_pair(prevKey, previous));
                 vToH.insert(std::make_pair(twinKey, twin));
 
-                // Insert the previous and twin half edge into the half edges array
+                // Insert the previous and twin half edge into the half edges 
+                // array
                 m_halfedges[nextIdx++] = previous;
                 m_halfedges[nextIdx++] = twin;
             }
@@ -2610,14 +2644,15 @@ void dcel::DCEL::Set(const VF & vf)
                 // Get the previous half edge
                 previous = vToH.find(prevKey)->second;
 
-                // If the previous half edge doesn't have an incident face then use the current one
+                // If the previous half edge doesn't have an incident face then
+                // use the current one
                 if (!previous->face)
                 {
                     previous->face = m_faces[i];
                 }
 
-                // If the current face doesn't have an incideht half edge then use the previous 
-                // half edge
+                // If the current face doesn't have an incideht half edge then 
+                // use the previous half edge
                 if (!m_faces[i]->halfedge)
                 {
                     m_faces[i]->halfedge = previous;
@@ -2627,18 +2662,18 @@ void dcel::DCEL::Set(const VF & vf)
             // Define the key for the next half edge
             std::string nextKey = std::to_string(currIndex) + '-' + std::to_string(nextIndex);
 
-            // If the next half edge does not exist then generate it and its twin. Otherwise, get 
-            // it directly
+            // If the next half edge does not exist then generate it and its 
+            // twin. Otherwise, get it directly
             if (vToH.find(nextKey) == vToH.end())
             {
-                // Generate the next half edge and set its start vertex, end vertex and incident 
-                // face
+                // Generate the next half edge and set its start vertex, end 
+                // vertex and incident face
                 next = std::make_shared<Halfedge>();
                 next->start = currVertex;
                 next->face = m_faces[i];
 
-                // Generate the twin half edge and set its start vertex, end vertex and twin half 
-                // edge
+                // Generate the twin half edge and set its start vertex, end 
+                // vertex and twin half edge
                 std::shared_ptr<Halfedge> twin = std::make_shared<Halfedge>();
                 twin->start = nextVertex;
                 twin->twin = next;
@@ -2646,22 +2681,22 @@ void dcel::DCEL::Set(const VF & vf)
                 // Set the twin to the next half edge
                 next->twin = twin;
 
-                // If the current vertex doesn't have an incident half edge then use the next half 
-                // edge
+                // If the current vertex doesn't have an incident half edge 
+                // then use the next half edge
                 if (!currVertex->halfedge)
                 {
                     currVertex->halfedge = next;
                 }
 
-                // If the next vertex doesn't have an incident half edge then use the twin half 
-                // edge
+                // If the next vertex doesn't have an incident half edge then 
+                // use the twin half edge
                 if (!nextVertex->halfedge)
                 {
                     nextVertex->halfedge = twin;
                 }
 
-                // If the current face doesn't have an incident half edge then use the next half 
-                // edge
+                // If the current face doesn't have an incident half edge then 
+                // use the next half edge
                 if (!m_faces[i]->halfedge)
                 {
                     m_faces[i]->halfedge = next;
@@ -2683,14 +2718,15 @@ void dcel::DCEL::Set(const VF & vf)
                 // Get the next half edge
                 next = vToH.find(nextKey)->second;
 
-                // If the next half edge doesn't have an incident face then use the current one
+                // If the next half edge doesn't have an incident face then use
+                // the current one
                 if (!next->face)
                 {
                     next->face = m_faces[i];
                 }
 
-                // If the current face doesn't have an incideht half edge then use the next half 
-                // edge
+                // If the current face doesn't have an incideht half edge then 
+                // use the next half edge
                 if (!m_faces[i]->halfedge)
                 {
                     m_faces[i]->halfedge = next;
@@ -2741,7 +2777,8 @@ void dcel::DCEL::SetHalfedgesIndex() const
     // Get the number of half edges in the geometry
     size_t nHalfedges = m_halfedges.size();
 
-    // Traverse through the half edges and set the ATTRIB_INDEX dynamic attribute
+    // Traverse through the half edges and set the ATTRIB_INDEX dynamic 
+    // attribute
     for (size_t i = 0; i < nHalfedges; i += 1)
     {
         m_halfedges[i]->Attributes().Set<size_t>(ATTRIB_INDEX, i);
@@ -2782,15 +2819,15 @@ void dcel::DCEL::SetVerticesIndex() const
 
 void dcel::DCEL::SetVerticesLocation(const toolkit::Plane & plane, double threshold) const
 {
-    // Traverse through the vertices of the geometry and set their location with respect of the 
-    // plane
+    // Traverse through the vertices of the geometry and set their location 
+    // with respect of the plane
     for (auto it = m_vertices.begin(); it != m_vertices.end(); ++it)
     {
         // Get the pointer to the current vertex
         std::shared_ptr<Vertex> V = *it;
 
-        // Get the location of the point with respect of the plane and store it in the location 
-        // dynamic attribute
+        // Get the location of the point with respect of the plane and store it
+        // in the location dynamic attribute
         int location = plane.PointLocation(V->Coords(), threshold);
         V->Attributes().Set<int>(ATTRIB_LOCATION, location);
     }
@@ -2834,7 +2871,8 @@ void dcel::DCEL::SplitHalfedgeByMidpoint(std::shared_ptr<Halfedge> halfedge)
     // Keep the reference to the twin half edge (we need it for later)
     std::shared_ptr<Halfedge> twinHalfedge = halfedge->twin;
 
-    // Generate a new DCEL half edge from the midpoint to the current half edge's end point
+    // Generate a new DCEL half edge from the midpoint to the current half 
+    // edge's end point
     std::shared_ptr<Halfedge> newHalfedge = std::make_shared<Halfedge>();
     newHalfedge->start = midpoint;
     newHalfedge->previous = halfedge;
@@ -2889,7 +2927,8 @@ void dcel::DCEL::SplitHalfedgesByMidpoint()
     // Set all vertices in the DCEL as original
     SetVerticesAttribute<bool>(ATTRIB_ORIGINAL, true);
 
-    // Set all half edges in the DCEL with the ATTRIB_SPLIT attribute with value false
+    // Set all half edges in the DCEL with the ATTRIB_SPLIT attribute with 
+    // value false
     SetHalfedgesAttribute<bool>(ATTRIB_SPLIT, false);
 
     // Set all half edges in the DCEL as original
@@ -2908,13 +2947,15 @@ void dcel::DCEL::SplitHalfedgesByMidpoint()
         bool isSplit;
         assert(halfedge->Attributes().Get<bool>(ATTRIB_SPLIT, isSplit));
 
-        // If the current half edge has been split then continue to the next half edge
+        // If the current half edge has been split then continue to the next 
+        // half edge
         if (isSplit)
         {
             continue;
         }
 
-        // If the current half edge is not one of the originals then continue to the next half edge
+        // If the current half edge is not one of the originals then continue 
+        // to the next half edge
         if (!halfedge->Attributes().Has(ATTRIB_ORIGINAL))
         {
             continue;
@@ -2937,8 +2978,8 @@ void dcel::DCEL::SubdivideFaceByMidpoints(std::shared_ptr<Face> face)
 	// 
 	assert(face);
 
-	// Get the original dynamic attribute of the start vertex from the incident half edge of the 
-	// face
+	// Get the original dynamic attribute of the start vertex from the incident
+    // half edge of the face
 	bool isOriginal = false;
 	assert(face->halfedge->start->Attributes().Get<bool>(ATTRIB_ORIGINAL, isOriginal));
 
@@ -2946,19 +2987,22 @@ void dcel::DCEL::SubdivideFaceByMidpoints(std::shared_ptr<Face> face)
 	std::shared_ptr<Halfedge> currentHalfedge = (isOriginal) ?
 		face->halfedge : face->halfedge->next;
 
-	// Traverse through the half edges of the geometry. Define the new faces by triangulating every 
-	// two non-original vertices
+	// Traverse through the half edges of the geometry. Define the new faces by
+    // triangulating every two non-original vertices
 	do
 	{
-		// Get the pointer to the half edge for the next iteration. We need to get this information now
-		// since the incidency of the current half edge will change
+		// Get the pointer to the half edge for the next iteration. We need to 
+        // get this information now since the incidency of the current half 
+        // edge will change
 		std::shared_ptr<Halfedge> nextIterationHalfedge = currentHalfedge->next->next;
 
-		// Initialize a new face. Then, insert it into the faces vector of the geometry
+		// Initialize a new face. Then, insert it into the faces vector of the 
+        // geometry
 		std::shared_ptr<Face> newFace = std::make_shared<Face>();
         m_faces.push_back(newFace);
 
-		// Initialize the new half edges. Then, insert them into the half edges vector of the geometry
+		// Initialize the new half edges. Then, insert them into the half edges
+        // vector of the geometry
 		std::shared_ptr<Halfedge> newHalfedge = std::make_shared<Halfedge>();
 		std::shared_ptr<Halfedge> newHalfedgeTwin = std::make_shared<Halfedge>();
 
@@ -2999,11 +3043,12 @@ void dcel::DCEL::SubdivideFaceByMidpoints(std::shared_ptr<Face> face)
 
 void dcel::DCEL::SubdivideFaceIntoQuadrilaterals(std::shared_ptr<Face> face)
 {
-    // Set the ATTRIB_VISITED attribute on all incident vertices to the face as false
+    // Set the ATTRIB_VISITED attribute on all incident vertices to the face as
+    // false
     face->SetVerticesAttribute<bool>(ATTRIB_VISITED, false);
 
-    // Get the reference to the initial half edge. It is required for the initial half edge to have 
-    // a non-original vertex
+    // Get the reference to the initial half edge. It is required for the 
+    // initial half edge to have a non-original vertex
     std::shared_ptr<Halfedge> currentHalfedge;
     currentHalfedge = !face->halfedge->start->Attributes().Has(ATTRIB_ORIGINAL) ?
         face->halfedge : face->halfedge->next;
@@ -3012,8 +3057,8 @@ void dcel::DCEL::SubdivideFaceIntoQuadrilaterals(std::shared_ptr<Face> face)
     Eigen::Vector3d coordinates;
     assert(face->Attributes().Get<Eigen::Vector3d>(ATTRIB_CENTER, coordinates));
 
-    // Generate a new DCELVertex with the coordinates of the center point of the face. Indicate the
-    // vertex is not original and it is not visited
+    // Generate a new DCELVertex with the coordinates of the center point of 
+    // the face. Indicate the vertex is not original and it is not visited
     std::shared_ptr<Vertex> center = std::make_shared<Vertex>(coordinates);
     center->Attributes().Set<bool>(ATTRIB_ORIGINAL, false);
     center->Attributes().Set<bool>(ATTRIB_VISITED, false);
@@ -3021,21 +3066,21 @@ void dcel::DCEL::SubdivideFaceIntoQuadrilaterals(std::shared_ptr<Face> face)
     // Push the new vertex into the vertices array of the DCEL
     m_vertices.push_back(center);
 
-    // NOTE: The first sub-face is always processed in a different way since it is the only time we 
-    // will generate two half edges simultaneously. That's why it is not generated in the loop way 
-    // below.
+    // NOTE: The first sub-face is always processed in a different way since it
+    // is the only time we will generate two half edges simultaneously. That's 
+    // why it is not generated in the loop way below.
 
     // Generate a new DCELFace and push it into the faces array of the DCEL
     std::shared_ptr<Face> newFace = std::make_shared<Face>();
     m_faces.push_back(newFace);
 
-    // Generate a new DCELHalfedge from the center to the current half edge's start vertex. 
-    // Initialize the respective twin half edge as well
+    // Generate a new DCELHalfedge from the center to the current half edge's 
+    // start vertex. Initialize the respective twin half edge as well
     std::shared_ptr<Halfedge> newHalfedge = std::make_shared<Halfedge>();
     std::shared_ptr<Halfedge> newHalfedgeTwin = std::make_shared<Halfedge>();
 
-    // Generate a new DCELHalfedge from the current half edge's next's end vertex to the center. 
-    // Initialize the respective twin half edge as well
+    // Generate a new DCELHalfedge from the current half edge's next's end 
+    // vertex to the center. Initialize the respective twin half edge as well
     std::shared_ptr<Halfedge> newPreviousHalfedge = std::make_shared<Halfedge>();
     std::shared_ptr<Halfedge> newPreviousHalfedgeTwin = std::make_shared<Halfedge>();
 
@@ -3083,12 +3128,14 @@ void dcel::DCEL::SubdivideFaceIntoQuadrilaterals(std::shared_ptr<Face> face)
     currentHalfedge->next->face = newFace;
     currentHalfedge->next->next = newPreviousHalfedge;
 
-    // Make the initial new half edge as the incident one for the new face and the center
+    // Make the initial new half edge as the incident one for the new face and 
+    // the center
     newFace->halfedge = newHalfedge;
     center->halfedge = newHalfedge;
 
-    // It is possible the incident half edge for the original face was the current half edge or its 
-    // next one. Let's play safe and make it to be the new half edge's twin's previous
+    // It is possible the incident half edge for the original face was the 
+    // current half edge or its next one. Let's play safe and make it to be the
+    // new half edge's twin's previous
     face->halfedge = newHalfedgeTwin->previous;
 
     // Set the respective vertices with the ATTRIB_VISITED attribute as true
@@ -3096,30 +3143,35 @@ void dcel::DCEL::SubdivideFaceIntoQuadrilaterals(std::shared_ptr<Face> face)
     center->Attributes().Set<bool>(ATTRIB_VISITED, true);
     newPreviousHalfedge->start->Attributes().Set<bool>(ATTRIB_VISITED, true);
 
-    // Not actually visited, but we are marking all of the new face vertices as visited though
+    // Not actually visited, but we are marking all of the new face vertices as
+    // visited though
     newHalfedge->next->twin->start->Attributes().Set<bool>(ATTRIB_VISITED, true);
 
-    // Now locate the current half edge to the next half edge in the original face
+    // Now locate the current half edge to the next half edge in the original 
+    // face
     currentHalfedge = newPreviousHalfedgeTwin->next;
 
-    // Get the reference to the current half edge's previous previous's half edge. We need it for 
-    // setting up correctly the twin half edge. Also, no matter which is the current half edge now, 
-    // the previous previous's half edge will always be the same half edge
+    // Get the reference to the current half edge's previous previous's half 
+    // edge. We need it for setting up correctly the twin half edge. Also, no 
+    // matter which is the current half edge now, the previous previous's half 
+    // edge will always be the same half edge
     std::shared_ptr<Halfedge> previousPreviousHalfedge = newHalfedgeTwin;
 
-    // Check if the end vertex of the next half edge of the current half edge has been visited
+    // Check if the end vertex of the next half edge of the current half edge 
+    // has been visited
     bool isVisited;
     assert(currentHalfedge->next->twin->start->Attributes().Get<bool>(ATTRIB_VISITED, isVisited));
 
-    // Repeat while the end vertex of the next half edge of the current half edge has not been 
-    // visited
+    // Repeat while the end vertex of the next half edge of the current half 
+    // edge has not been visited
     while (!isVisited)
     {
         // Generate a new DCELFace and push it into the faces array of the DCEL
         newFace = std::make_shared<Face>();
         m_faces.push_back(newFace);
 
-        // Generate the new half edge and its twin. Push both into the DCEL half edges array
+        // Generate the new half edge and its twin. Push both into the DCEL 
+        // half edges array
         newHalfedge = std::make_shared<Halfedge>();
         newHalfedgeTwin = std::make_shared<Halfedge>();
         m_halfedges.push_back(newHalfedge);
@@ -3153,15 +3205,17 @@ void dcel::DCEL::SubdivideFaceIntoQuadrilaterals(std::shared_ptr<Face> face)
         // Make the new half edge as the incident for the new face
         newFace->halfedge = newHalfedge;
 
-        // Set the ATTRIB_VISITED attributes of the respective vertices as visited. The center and 
-        // the current half edge's start are already visited
+        // Set the ATTRIB_VISITED attributes of the respective vertices as 
+        // visited. The center and  the current half edge's start are already 
+        // visited
         currentHalfedge->twin->start->Attributes().Set<bool>(ATTRIB_VISITED, true);
         newHalfedge->start->Attributes().Set<bool>(ATTRIB_VISITED, true);
 
         // Move to the next respective half edge in the original face
         currentHalfedge = newHalfedgeTwin->next;
 
-        // Check if the end vertex of the next half edge of the current half edge has been visited
+        // Check if the end vertex of the next half edge of the current half 
+        // edge has been visited
         assert(currentHalfedge->next->twin->start->Attributes().Get<bool>(ATTRIB_VISITED, isVisited));
     }
 
@@ -3177,14 +3231,15 @@ void dcel::DCEL::SubdivideFacesByMidpoints()
 	// Get the number of original faces from the geometry
 	size_t nOriginalFaces = m_faces.size();
 
-	// Traverse through the original faces of the geometry and subdivide them by their edge 
-	// midpoints
+	// Traverse through the original faces of the geometry and subdivide them 
+    // by their edge midpoints
 	for (size_t faceIdx = 0; faceIdx < nOriginalFaces; faceIdx += 1)
 	{
 		SubdivideFaceByMidpoints(m_faces[faceIdx]);
 	}
 
-	// Remove the ATTRIB_ORIGINAL and ATTRIB_VISITED attributes from the vertices in the DCEL
+	// Remove the ATTRIB_ORIGINAL and ATTRIB_VISITED attributes from the 
+    // vertices in the DCEL
 	RemoveVerticesAttribute(ATTRIB_ORIGINAL);
 	RemoveVerticesAttribute(ATTRIB_VISITED);
 }
@@ -3214,7 +3269,8 @@ void dcel::DCEL::TriangulateFacesByVertices()
 		Eigen::Vector3d C;
 		assert(face->Attributes().Get<Eigen::Vector3d>(ATTRIB_CENTER, C));
 
-		// Triangulate the current face using the coordinates of the associated center
+		// Triangulate the current face using the coordinates of the associated
+        // center
 		TriangulateFaceByVertices(face, C);
 	}
 }
@@ -3227,15 +3283,17 @@ void dcel::DCEL::TriangulateFaceByVertices(std::shared_ptr<Face> face, const Eig
     // Get the pointer to the incident half edge of the face
     std::shared_ptr<Halfedge> halfedge = face->halfedge;
 
-    // Get the pointer to the previous half edge of the incident half edge of the face
+    // Get the pointer to the previous half edge of the incident half edge of 
+    // the face
     std::shared_ptr<Halfedge> lastHalfedge = halfedge->previous;
 
-    // Generate a new vertex using the given coordinates. Then, add it to the vertices vector
+    // Generate a new vertex using the given coordinates. Then, add it to the 
+    // vertices vector
     std::shared_ptr<Vertex> center = std::make_shared<Vertex>(C);
     m_vertices.push_back(center);
 
-    // Generate a new face, this is the first triangle from the given face. Then, add it to the 
-    // faces vector
+    // Generate a new face, this is the first triangle from the given face. 
+    // Then, add it to the faces vector
     std::shared_ptr<Face> newFace = std::make_shared<Face>();
     m_faces.push_back(newFace);
 
@@ -3289,8 +3347,8 @@ void dcel::DCEL::TriangulateFaceByVertices(std::shared_ptr<Face> face, const Eig
     // Set the incident half edge to the center vertex
     center->halfedge = prevHalfedge;
 
-    // Move to the next half edge as it was originally in the given face (this was the next half 
-    // edge of the current half edge)
+    // Move to the next half edge as it was originally in the given face (this 
+    // was the next half edge of the current half edge)
     halfedge = nextHalfedgeTwin->next;
 
     // Traverse through the half edges of the original face
@@ -3333,8 +3391,8 @@ void dcel::DCEL::TriangulateFaceByVertices(std::shared_ptr<Face> face, const Eig
         // Set the incident half edge of the new face
         newFace->halfedge = halfedge;
 
-        // Move to the next half edge as it was originally in the given face (this was the next 
-        // half edge of the current half edge)
+        // Move to the next half edge as it was originally in the given face 
+        // (this was the next half edge of the current half edge)
         halfedge = nextHalfedgeTwin->next;
 
     } while (halfedge != lastHalfedge);
@@ -3362,14 +3420,12 @@ VF dcel::DCEL::vf() const
         // Get the pointer to the current vertex
         std::shared_ptr<Vertex> vertex = *it;
 
-        // Insert the coordinates of the current vertex into the vertex coordinates vector
+        // Insert the coordinates of the current vertex into the vertex 
+        // coordinates vector
         vf.addVertex(vertex->Coords());
 
         // Set the index of the vertex as its attribute
         vertex->Attributes().Set<size_t>(ATTRIB_INDEX, i++);
-
-        // Update the vertex index
-        //i += 1;
     }
 
     // 
@@ -3391,10 +3447,6 @@ VF dcel::DCEL::vf() const
         // 
         size_t idx = 0;
 
-        // Initialize the array for the vertex indices of the current face. Then, get its reference
-        //vf.F.emplace_back();
-        //std::vector<size_t> & vertices = vf.F[vf.F.size() - 1];
-
         // Get the incident half edge to the face
         std::shared_ptr<Halfedge> currentHalfedge = face->halfedge;
 
@@ -3415,7 +3467,8 @@ VF dcel::DCEL::vf() const
         vf.addFace(indices);
     }
 
-    // Traverse through the vertices of the DCEL and remove their respective index
+    // Traverse through the vertices of the DCEL and remove their respective 
+    // index
     for (auto it = m_vertices.begin(); it != m_vertices.end(); ++it)
     {
         (*it)->Attributes().Erase(ATTRIB_INDEX);
@@ -3436,33 +3489,36 @@ double dcel::DCEL::Volume() const
         // Get the pointer to the current face
         std::shared_ptr<Face> face = *it;
 
-        // Keep the reference to the start vertex of the incident half edge of the face. It will be
-        // used for triangulating the face
+        // Keep the reference to the start vertex of the incident half edge of 
+        // the face. It will be used for triangulating the face
         const Eigen::Vector3d & v0 = face->halfedge->start->Coords();
 
-        // Get the reference to the next half edge to the incident half edge of the face
+        // Get the reference to the next half edge to the incident half edge of
+        // the face
         std::shared_ptr<Halfedge> halfedge = face->halfedge->next;
 
-        // Traverse through the half edges of the face and define the points of the triangles using
-        // v0 and the end points of the half edges. Stop at the previous half edge to the incident 
-        // half edge of the face
+        // Traverse through the half edges of the face and define the points of
+        // the triangles using v0 and the end points of the half edges. Stop at
+        // the previous half edge to the incident half edge of the face
         do
         {
-            // Get the references to the other two points of the current triangle
+            // Get the references to the other two points of the current 
+            // triangle
             const Eigen::Vector3d & v1 = halfedge->start->Coords();
             const Eigen::Vector3d & v2 = halfedge->twin->start->Coords();
 
             // Calculate the cross product between the sides of the triangle
             Eigen::Vector3d N = (v2 - v1).cross(v0 - v1);
 
-            // Calculate the area of the current triangle (actually it is twice the area)
+            // Calculate the area of the current triangle (actually it is twice
+            // the area)
             double twiceArea = abs(N.norm());
 
             // Normalize the normal vector of the current triangle
             N.normalize();
 
-            // Calculate the expression of the volume from the current face and accumulate it into 
-            // the volume value
+            // Calculate the expression of the volume from the current face and
+            // accumulate it into the volume value
             volume += (v1.dot(N) * twiceArea);
 
             // Move to the next half edge of the face
@@ -3770,8 +3826,8 @@ void dcel::DCEL::WriteGeogebraJs(
         // Set the index of the face
         m_faces[i]->Attributes().Set<size_t>(ATTRIB_INDEX, i);
 
-        // If the current face is planar then write its indices using a single polygon. Otherwise, 
-        // write its indices as triangles
+        // If the current face is planar then write its indices using a single 
+        // polygon. Otherwise, write its indices as triangles
         if (m_faces[i]->IsPlanar(threshold))
         {
             m_faces[i]->WritePlanarGeogebraJs(ss, prefix);

@@ -74,10 +74,12 @@ bool utils::findPath(
     size_t i,
     std::vector<size_t> & path)
 {
-    // If point i has been visited then the loop is closed. Otherwise, keep visiting
+    // If point i has been visited then the loop is closed. Otherwise, keep 
+    // visiting
     if (visited[i])
     {
-        // Traverse through the visited vector and search for a non visited index
+        // Traverse through the visited vector and search for a non visited 
+        // index
         for (auto it = visited.begin(); it != visited.end(); ++it)
         {
             // If the current index is not visited then return false
@@ -181,8 +183,8 @@ bool utils::getUniquePoints(
             // Get the reference to the current unique point
             Eigen::Vector3d & U = *j;
 
-            // If the coordinate values from Vi and Uj are equal then indicate that Vi is no longer 
-            // unique
+            // If the coordinate values from Vi and Uj are equal then indicate 
+            // that Vi is no longer unique
             if (abs(V.x() - U.x()) <= threshold &&
                 abs(V.y() - U.y()) <= threshold &&
                 abs(V.z() - U.z()) <= threshold)
@@ -269,8 +271,8 @@ bool utils::sameSide(
     double test = cp1.dot(cp2);
     fixZero(test, threshold);
 
-    // If the dot product is greater or equal to zero then both points P and Q are at the same side 
-    // of vector AB
+    // If the dot product is greater or equal to zero then both points P and Q 
+    // are at the same side of vector AB
     return (test >= 0.0);
 }
 

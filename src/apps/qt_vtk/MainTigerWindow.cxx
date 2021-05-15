@@ -41,7 +41,7 @@
 
 // Include dialog headers
 #include "addblockweightloadsparametersdialog.h"
-#include "addblocktorqueloadparametersdialog.h"
+#include "addblockloadparametersdialog.h"
 #include "adaptivetileoffsetclippingparametersdialog.h"
 #include "bendedsquareparametersdialog.h"
 #include "centerdirectionparametersdialog.h"
@@ -57,6 +57,7 @@
 #include "platonicsolidparametersdialog.h"
 #include "rectangleparametersdialog.h"
 #include "regularpolygonparametersdialog.h"
+#include "resetblockloadsparametersdialog.h"
 #include "rotatetessellationparametersdialog.h"
 #include "scaletessellationparametersdialog.h"
 #include "squAregridparametersdialog.h"
@@ -145,8 +146,8 @@ MainTigerWindow::MainTigerWindow() :
     // 
 	this->setupUi(this);
 
-    // Calculate 85% of the height from the primary screen. Then, set the width and height of the 
-    // window
+    // Calculate 85% of the height from the primary screen. Then, set the width
+    // and height of the window
     double height = QGuiApplication::primaryScreen()->geometry().height() * 0.85;
     setFixedSize(height * (1.0 + sqrt(5.0)) / 2.0, height);
 
@@ -239,19 +240,6 @@ MainTigerWindow::MainTigerWindow() :
 	// Initialize the axes and grid actors, they start initialized by default
 	InitAxesActor();
 	InitGridActor();
-
-    /*vtkNew<vtkVectorText> aText;
-    aText->SetText("Something");
-    vtkNew<vtkPolyDataMapper> textMapper;
-    textMapper->SetInputConnection(aText->GetOutputPort());
-    m_vtkAssemblyIndicesActor = vtkFollower::New();
-    m_vtkAssemblyIndicesActor->SetMapper(textMapper);
-    m_vtkAssemblyIndicesActor->SetScale(0.2, 0.2, 0.2);
-    m_vtkAssemblyIndicesActor->AddPosition(0, -0.1, 0);
-    m_vtkAssemblyIndicesActor->GetProperty()->SetColor(colors->GetColor3d("Peacock").GetData());
-    m_vtkAssemblyIndicesActor->SetCamera(m_vtkCamera);
-    m_vtkRenderer->AddActor(m_vtkAssemblyIndicesActor);*/
-
 
     // Validate the workspaces directory, make it if it doesn't exist
     assert(ValidateWorkspacesDirectory(true));
@@ -473,12 +461,14 @@ void MainTigerWindow::InitAssemblyActors(
 
     std::set<std::tuple<size_t, size_t>> visitedEdges;
 
-    // Initialize the object to store the triangles representing the faces of the pieces. Each 
-    // face is triangulated with respect of one of its incident vertices
+    // Initialize the object to store the triangles representing the faces of 
+    // the pieces. Each face is triangulated with respect of one of its 
+    // incident vertices
     vtkSmartPointer<vtkCellArray> triangles = vtkSmartPointer<vtkCellArray>::New();
     triangles->SetNumberOfCells(assembly->CountTriangles());
 
-    // Keep count of the number of points that have been inserted in the points object
+    // Keep count of the number of points that have been inserted in the points
+    // object
     size_t insertedPoints = 0;
 
     // 
@@ -500,8 +490,8 @@ void MainTigerWindow::InitAssemblyActors(
         // Get the number of vertices of the current piece
         size_t nVertices = block->Geometry().countVertices();
 
-        // Traverse through the vertices of the current piece, insert their coordinates into the 
-        // points object
+        // Traverse through the vertices of the current piece, insert their 
+        // coordinates into the points object
         for (size_t vIdx = 0; vIdx < nVertices; vIdx += 1) 
         {
             C << block->Geometry().Vertex(vIdx);
@@ -518,8 +508,8 @@ void MainTigerWindow::InitAssemblyActors(
         // Get the number of faces of the current piece
         size_t nFaces = block->Geometry().countFaces();
 
-        // Traverse through the faces of the current piece, triangulate them and insert into the 
-        // triangles object
+        // Traverse through the faces of the current piece, triangulate them 
+        // and insert into the triangles object
         for (size_t fIdx = 0; fIdx < nFaces; fIdx += 1) 
         {
             const std::vector<size_t> & indices = block->Geometry().face(fIdx);
@@ -592,7 +582,8 @@ void MainTigerWindow::InitAssemblyActors(
     facesMapper->SetInputData(facesPolyData);
     facesMapper->SetLookupTable(colorFunction);
 
-    // Initialize and define the actor that renders the faces of the blocks in the assembly
+    // Initialize and define the actor that renders the faces of the blocks in 
+    // the assembly
     m_vtkAssemblyFacesActor = vtkActor::New();
     m_vtkAssemblyFacesActor->SetMapper(facesMapper);
     m_vtkAssemblyFacesActor->GetProperty()->BackfaceCullingOn();
@@ -607,7 +598,8 @@ void MainTigerWindow::InitAssemblyActors(
     vtkSmartPointer<vtkPolyDataMapper> edgesMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
     edgesMapper->SetInputData(edgesPolyData);
 
-    // Initialize and define the actor that renders the edges of the blocks in the assembly
+    // Initialize and define the actor that renders the edges of the blocks in 
+    // the assembly
     m_vtkAssemblyEdgesActor = vtkActor::New();
     m_vtkAssemblyEdgesActor->SetMapper(edgesMapper);
     m_vtkAssemblyEdgesActor->GetProperty()->SetLineWidth(4);
@@ -646,7 +638,6 @@ void MainTigerWindow::InitAssemblyBlockIndicesActor()
         // Get the centroid of the current block and translate it with respect 
         // of the normal vector of the respective face in the tessellation. We 
         // will use it to position the text
-        //Eigen::Vector3d C = blocks[i]->Geometry().centroid() + m_workspace->GetTessellation()->Geometry().Normal(blocks[i]->FaceIndex(), true);
         Eigen::Vector3d faceCentroid = m_workspace->GetTessellation()->Geometry().centroid(blocks[i]->FaceIndex());
         Eigen::Vector3d faceNormal = m_workspace->GetTessellation()->Geometry().Normal(blocks[i]->FaceIndex(), true);
         Eigen::Vector3d C = faceCentroid + faceNormal;
@@ -716,7 +707,8 @@ void MainTigerWindow::InitAxesActor()
 	colors->SetTypedTuple(1, G);
 	colors->SetTypedTuple(2, B);
 
-	// Initialize and define the lines poly data (this object links points, lines and colors)
+	// Initialize and define the lines poly data (this object links points, 
+    // lines and colors)
 	vtkSmartPointer<vtkPolyData> linesPolyData = vtkSmartPointer<vtkPolyData>::New();
 	linesPolyData->SetPoints(points);
 	linesPolyData->SetLines(lines);
@@ -818,7 +810,8 @@ vtkWeakPointer<vtkActor> MainTigerWindow::InitAxisAlignedBoundingBoxActor(const 
     lines->InsertNextCell(line26);
     lines->InsertNextCell(line37);
 
-    // Initialize and define the lines poly data (this object links points, lines and colors)
+    // Initialize and define the lines poly data (this object links points, 
+    // lines and colors)
     vtkSmartPointer<vtkPolyData> linesPolyData = vtkSmartPointer<vtkPolyData>::New();
     linesPolyData->SetPoints(points);
     linesPolyData->SetLines(lines);
@@ -840,8 +833,8 @@ void MainTigerWindow::InitEdgeDirectionsActor(const std::shared_ptr<dcel::DCEL> 
 {
     assert(dcel);
 
-    // If there is an edge directions actor then remove it from the renderer (if viewing) and 
-    // delete it
+    // If there is an edge directions actor then remove it from the renderer 
+    // (if viewing) and delete it
     if (m_vtkEdgeDirectionsActor) 
     {
         m_vtkRenderer->RemoveActor(m_vtkEdgeDirectionsActor);
@@ -854,7 +847,8 @@ void MainTigerWindow::InitEdgeDirectionsActor(const std::shared_ptr<dcel::DCEL> 
     vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
     points->SetNumberOfPoints(nHalfedges);
 
-    // Initialize an array to store the coordinates of the vertices and generate the points
+    // Initialize an array to store the coordinates of the vertices and 
+    // generate the points
     double P[3] = { 0.0, 0.0, 0.0 };
 
     // 
@@ -878,7 +872,8 @@ void MainTigerWindow::InitEdgeDirectionsActor(const std::shared_ptr<dcel::DCEL> 
         // Check if the current half edge has been visited
         assert(halfedge->Attributes().Get<bool>(ATTRIB_VISITED, visited));
 
-        // If the current half edge has been visited then continue with the next half edge
+        // If the current half edge has been visited then continue with the 
+        // next half edge
         if (visited) 
         {
             continue;
@@ -892,13 +887,15 @@ void MainTigerWindow::InitEdgeDirectionsActor(const std::shared_ptr<dcel::DCEL> 
         D.normalize();
         D *= length;
 
-        // Load the coordinates of the first end point and insert it into the points object
+        // Load the coordinates of the first end point and insert it into the 
+        // points object
         P[0] = M.x();
         P[1] = M.y();
         P[2] = M.z();
         points->InsertPoint(insertedPoints + 0, P);
 
-        // Load the coordinates of the second end point and insert it into the points object
+        // Load the coordinates of the second end point and insert it into the 
+        // points object
         P[0] = M.x() + D.x();
         P[1] = M.y() + D.y();
         P[2] = M.z() + D.z();
@@ -910,11 +907,13 @@ void MainTigerWindow::InitEdgeDirectionsActor(const std::shared_ptr<dcel::DCEL> 
         line->GetPointIds()->SetId(1, insertedPoints + 1);
         lines->InsertNextCell(line);
 
-        // Update the number of points that have been inserted in the points object
+        // Update the number of points that have been inserted in the points 
+        // object
         insertedPoints += 2;
     }
 
-    // Remove the ATTRIB_VISITED dynamic attribute from the half edges of the tessellation
+    // Remove the ATTRIB_VISITED dynamic attribute from the half edges of the 
+    // tessellation
     dcel->RemoveHalfedgesAttribute(ATTRIB_VISITED);
 
     // Initialize and define the polydata
@@ -941,45 +940,51 @@ void MainTigerWindow::InitTileCentersActor(const std::shared_ptr<dcel::DCEL> dce
 {
     assert(dcel);
 
-    // If there is a face centers actor then remove it from the renderer (if viewing) and  delete 
-    // it
+    // If there is a face centers actor then remove it from the renderer (if 
+    // viewing) and  delete it
     if (m_vtkTileCentersActor)
     {
         m_vtkRenderer->RemoveActor(m_vtkTileCentersActor);
         m_vtkTileCentersActor->Delete();
     }
 
-    // Get the vertex coordinates and vertex indices of an octahedron with the given radius
+    // Get the vertex coordinates and vertex indices of an octahedron with the 
+    // given radius
     const VF OCT = geometries::Octahedron(radius);
 
     size_t nFaces = dcel->Faces().size();
 
-    // Initialize the object to store the points (vertices) of the face centers. Face centers 
-    // Are represented using octahedra, an octahedron has 6 vertices
+    // Initialize the object to store the points (vertices) of the face 
+    // centers. Face centers Are represented using octahedra, an octahedron has
+    // 6 vertices
     vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
     points->SetNumberOfPoints(nFaces * 6);
 
-    // Initialize the object to store the triangles representing the face centers
+    // Initialize the object to store the triangles representing the face 
+    // centers
     vtkSmartPointer<vtkCellArray> triangles = vtkSmartPointer<vtkCellArray>::New();
     triangles->SetNumberOfCells(nFaces * 8);
 
-    // Initialize an array to store the coordinates of the vertices and generate the points
+    // Initialize an array to store the coordinates of the vertices and 
+    // generate the points
     double P[3] = { 0.0, 0.0, 0.0 };
 
     Eigen::Vector3d V = Eigen::Vector3d::Zero(), C = Eigen::Vector3d::Zero();
 
-    // Traverse through the faces of the tessellation and store their respective octahedron 
-    // vertices coordinates in the points object
+    // Traverse through the faces of the tessellation and store their 
+    // respective octahedron vertices coordinates in the points object
     for (size_t faceIdx = 0; faceIdx < nFaces; faceIdx += 1)
     {
         // Get the reference to the center of the current face
         assert(dcel->Faces()[faceIdx]->Attributes().Get<Eigen::Vector3d>(ATTRIB_CENTER, C));
 
-        // Calculate the start index for the points of the octahedron for the current face center
+        // Calculate the start index for the points of the octahedron for the 
+        // current face center
         size_t octIdx = faceIdx * 6;
 
-        // Traverse through the vertices of the octahedron. Translate its coordinates with respect 
-        // to the location of the face center and add them to the points object
+        // Traverse through the vertices of the octahedron. Translate its 
+        // coordinates with respect to the location of the face center and add 
+        // them to the points object
         for (size_t vIdx = 0; vIdx < 6; vIdx += 1)
         {
             V << OCT.Vertex(vIdx);
@@ -991,8 +996,8 @@ void MainTigerWindow::InitTileCentersActor(const std::shared_ptr<dcel::DCEL> dce
             points->InsertPoint(octIdx + vIdx, P);
         }
 
-        // Traverse through the vertex indices of the octahedron. Define the faces and insert them 
-        // in the triangles object
+        // Traverse through the vertex indices of the octahedron. Define the 
+        // faces and insert them in the triangles object
         for (size_t fIdx = 0; fIdx < 8; fIdx += 1)
         {
             const std::vector<size_t> & indices = OCT.face(fIdx);
@@ -1037,14 +1042,15 @@ void MainTigerWindow::InitTessellationActors(const VF & vf)
     vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
     points->SetNumberOfPoints(nVertices);
 
-    // Initialize an array to store the coordinates of the vertices and generate the points
+    // Initialize an array to store the coordinates of the vertices and 
+    // generate the points
     double P[3] = { 0.0, 0.0, 0.0 };
 
     // 
     Eigen::Vector3d C = Eigen::Vector3d::Zero();
 
-    // Traverse through the vertices of the tessellation and store their coordinates in the 
-    // points object
+    // Traverse through the vertices of the tessellation and store their 
+    // coordinates in the points object
     for (size_t i = 0; i < nVertices; i += 1)
     {
         C << vf.Vertex(i);
@@ -1059,21 +1065,21 @@ void MainTigerWindow::InitTessellationActors(const VF & vf)
     // Initialize an unordered set to track the edges
     std::set<std::tuple<size_t, size_t>> edges;
 
-    // Initialize the object to store the lines representing the wireframe of the geometric
-    // domain
+    // Initialize the object to store the lines representing the wireframe of 
+    // the geometric domain
     vtkSmartPointer<vtkCellArray> lines = vtkSmartPointer<vtkCellArray>::New();
     lines->SetNumberOfCells(vf.countEdges());
 
-    // Initialize the object to store the triangles representing the faces of the geometric 
-    // domain. Each face is triangulated with respect of the start vertex from the incident half 
-    // edge of each face
+    // Initialize the object to store the triangles representing the faces of 
+    // the geometric domain. Each face is triangulated with respect of the 
+    // start vertex from the incident half edge of each face
     vtkSmartPointer<vtkCellArray> triangles = vtkSmartPointer<vtkCellArray>::New();
     triangles->SetNumberOfCells(vf.countTriangles());
 
     size_t nFaces = vf.countFaces();
 
-    // Traverse through the edges of the tessellation and add their information to the lines 
-    // object
+    // Traverse through the edges of the tessellation and add their information
+    // to the lines object
     for (size_t i = 0; i < nFaces; i += 1)
     {
         const std::vector<size_t> & face = vf.face(i);
@@ -1205,14 +1211,16 @@ void MainTigerWindow::InitGridActor(size_t width, size_t height, size_t widthSeg
 		points->SetPoint(index + 0, P1);
 		points->SetPoint(index + 1, P2);
 
-		// Initialize the object representing the current line and store it in the lines object
+		// Initialize the object representing the current line and store it in 
+        // the lines object
 		vtkSmartPointer<vtkLine> line = vtkSmartPointer<vtkLine>::New();
 		line->GetPointIds()->SetId(0, index + 0);
 		line->GetPointIds()->SetId(1, index + 1);
 		lines->InsertNextCell(line);
 	}
 
-	// Initialize the object representing the top line of the grid and store it in the lines object
+	// Initialize the object representing the top line of the grid and store it
+    // in the lines object
 	vtkSmartPointer<vtkLine> topLine = vtkSmartPointer<vtkLine>::New();
 	topLine->GetPointIds()->SetId(0, 0);
 	topLine->GetPointIds()->SetId(1, widthSegments * 2);
@@ -1232,15 +1240,16 @@ void MainTigerWindow::InitGridActor(size_t width, size_t height, size_t widthSeg
 		points->SetPoint(index + 0, P1);
 		points->SetPoint(index + 1, P2);
 
-		// Initialize the object representing the current line and store it in the lines object
+		// Initialize the object representing the current line and store it in 
+        // the lines object
 		vtkSmartPointer<vtkLine> line = vtkSmartPointer<vtkLine>::New();
 		line->GetPointIds()->SetId(0, index + 0);
 		line->GetPointIds()->SetId(1, index + 1);
 		lines->InsertNextCell(line);
 	}
 
-	// Initialize the object representing the bottom line of the grid and store it in the lines 
-	// object
+	// Initialize the object representing the bottom line of the grid and store
+    // it in the lines object
 	vtkSmartPointer<vtkLine> bottomLine = vtkSmartPointer<vtkLine>::New();
 	bottomLine->GetPointIds()->SetId(0, 1);
 	bottomLine->GetPointIds()->SetId(1, (widthSegments * 2) + 1);
@@ -1270,12 +1279,14 @@ void MainTigerWindow::InitInterfacePolygonsActor(const std::shared_ptr<Interface
     // Clear the interface polygons actor
     ClearInteracePolygonsActor();
 
-    // Initialize the object to store the points (vertices) of the interface polygons
+    // Initialize the object to store the points (vertices) of the interface 
+    // polygons
     vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
     points->SetNumberOfPoints(intfs->CountVertices());
 
-    // Initialize the object to store the triangles from the interface polygon. Each interface 
-    // polygon is triangulated with respect to one of its vertices
+    // Initialize the object to store the triangles from the interface polygon.
+    // Each interface polygon is triangulated with respect to one of its 
+    // vertices
     vtkSmartPointer<vtkCellArray> triangles = vtkSmartPointer<vtkCellArray>::New();
     triangles->SetNumberOfCells(intfs->CountTriangles());
 
@@ -1288,14 +1299,16 @@ void MainTigerWindow::InitInterfacePolygonsActor(const std::shared_ptr<Interface
     // 
     size_t insertedPoints = 0, nVertices = 0, vIdx = 0, nFaces = 0, fIdx = 0, nIndices = 0, i = 0;
 
-    // Traverse through the interface polygons. Add their vertices into the points object, 
-    // triangulate their face and insert it into the triangles objecttriangulate their face
+    // Traverse through the interface polygons. Add their vertices into the 
+    // points object, triangulate their face and insert it into the triangles 
+    // object triangulate their face
     for (auto it = intfs->GetInterfaces().begin(); it != intfs->GetInterfaces().end(); ++it)
     {
         // Get the pointer to the current interface polygon
         std::shared_ptr<VF> intf = *it;
 
-        // If there it no pointer to an interface polygon then continue to the next one
+        // If there it no pointer to an interface polygon then continue to the 
+        // next one
         if (!intf) 
         {
             continue;
@@ -1304,7 +1317,8 @@ void MainTigerWindow::InitInterfacePolygonsActor(const std::shared_ptr<Interface
         // Get the number of vertices of the geometry
         nVertices = intf->countVertices();
 
-        // Traverse through the vertices of the geometry and insert them into the points object
+        // Traverse through the vertices of the geometry and insert them into 
+        // the points object
         for (vIdx = 0; vIdx < nVertices; vIdx += 1) 
         {
             // Get the reference to the coordinates of the current vertex
@@ -1322,9 +1336,10 @@ void MainTigerWindow::InitInterfacePolygonsActor(const std::shared_ptr<Interface
         // Get the number of faces of the geometry
         nFaces = intf->countFaces();
 
-        // Traverse through the faces of the geometry, triangulate them and insert the triangles 
-        // into the triangles object. Each face is triangulated with respect to the start vertex of
-        // the incident half edge of each face
+        // Traverse through the faces of the geometry, triangulate them and 
+        // insert the triangles into the triangles object. Each face is 
+        // triangulated with respect to the start vertex of the incident half 
+        // edge of each face
         for (fIdx = 0; fIdx < nFaces; fIdx += 1) 
         {
             // Get the pointer to the current face
@@ -1386,17 +1401,20 @@ void MainTigerWindow::InitInterfacePolygonsActor(
 
     size_t nInterfaceVertices = intfs->CountVertices();
 
-    // Initialize the object to store the points (vertices) of the interface polygons
+    // Initialize the object to store the points (vertices) of the interface 
+    // polygons
     vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
     points->SetNumberOfPoints(nInterfaceVertices);
 
-    // Initialize the object to store the color values of the points. Color values go from 0 to 
-    // 1. They Are normalized values from the force components from an Equilibrium Analysis result
+    // Initialize the object to store the color values of the points. Color 
+    // values go from 0 to 1. They Are normalized values from the force 
+    // components from an Equilibrium Analysis result
     vtkSmartPointer<vtkDoubleArray> pointColors = vtkSmartPointer<vtkDoubleArray>::New();
     pointColors->SetNumberOfValues(nInterfaceVertices);
 
-    // Initialize the object to store the triangles from the interface polygon. Each interface 
-    // polygon is triangulated with respect to one of its vertices
+    // Initialize the object to store the triangles from the interface polygon.
+    // Each interface polygon is triangulated with respect to one of its 
+    // vertices
     vtkSmartPointer<vtkCellArray> triangles = vtkSmartPointer<vtkCellArray>::New();
     triangles->SetNumberOfCells(intfs->CountTriangles());
 
@@ -1409,14 +1427,16 @@ void MainTigerWindow::InitInterfacePolygonsActor(
     // Keep count of the number of inserted vertices in the points object
     size_t insertedPoints = 0;
 
-    // Traverse through the interface polygons. Add their vertices into the points object, 
-    // triangulate their face and insert it into the triangles object triangulate their face
+    // Traverse through the interface polygons. Add their vertices into the 
+    // points object, triangulate their face and insert it into the triangles 
+    // object triangulate their face
     for (auto it = intfs->GetInterfaces().begin(); it != intfs->GetInterfaces().end(); ++it)
     {
         // Get the pointer to the current interface polygon
         std::shared_ptr<VF> intf = *it;
 
-        // If no pointer to an interface polygon then continue with the next one
+        // If no pointer to an interface polygon then continue with the next 
+        // one
         if (!intf) 
         {
             continue;
@@ -1428,7 +1448,8 @@ void MainTigerWindow::InitInterfacePolygonsActor(
         // 
         size_t intfEquilibriumIndex = 0;
 
-        // If the current interface has the ATTRIB_IN_EQUILIBRIUM then get its value
+        // If the current interface has the ATTRIB_IN_EQUILIBRIUM then get its 
+        // value
         if (intf->Attributes().Has(ATTRIB_IN_EQUILIBRIUM))
         {
             assert(intf->Attributes().Get<bool>(ATTRIB_IN_EQUILIBRIUM, intfInEquilibrium));
@@ -1457,8 +1478,8 @@ void MainTigerWindow::InitInterfacePolygonsActor(
             // Initialize the force value of the vertex
             double force = -1e-08;
 
-            // If the current interface is in the equilibrium analysis model then get the required
-            // force magnitude from the results object
+            // If the current interface is in the equilibrium analysis model 
+            // then get the required force magnitude from the results object
             if (intfInEquilibrium)
             {
                 // Define the key for the respective force 
@@ -1492,18 +1513,19 @@ void MainTigerWindow::InitInterfacePolygonsActor(
                 }
             }
 
-            // Get the force value associated to the vertex. Then, normalize its value with respect
-            // to the maximum force value from the results and insert it into the points color 
-            // object
+            // Get the force value associated to the vertex. Then, normalize 
+            // its value with respect to the maximum force value from the 
+            // results and insert it into the points color object
             pointColors->SetValue(insertedPoints + vIdx, force);
         }
 
         // Get the number of faces of the geometry
         size_t nFaces = intf->countFaces();
 
-        // Traverse through the faces of the geometry, triangulate them and insert the triangles 
-        // into the triangles object. Each face is triangulated with respect to the start vertex of
-        // the incident half edge of each face
+        // Traverse through the faces of the geometry, triangulate them and 
+        // insert the triangles into the triangles object. Each face is 
+        // triangulated with respect to the start vertex of the incident half 
+        // edge of each face
         for (size_t fIdx = 0; fIdx < nFaces; fIdx += 1)
         {
             // Get the pointer to the current face
@@ -1562,7 +1584,8 @@ void MainTigerWindow::InitInterfacePolygonsActor(
     m_vtkInterfacePolygonsActor->GetProperty()->SetColor(1.0, 1.0, 0.0);
     m_vtkInterfacePolygonsActor->SetVisibility(m_viewInterfacePolygons);
 
-    // Initialize and define the actor for rendering the interface polygon force bar
+    // Initialize and define the actor for rendering the interface polygon 
+    // force bar
     m_vtkInterfacePolygonsBarActor = vtkScalarBarActor::New();
     m_vtkInterfacePolygonsBarActor->SetLookupTable(mapper->GetLookupTable());
     m_vtkInterfacePolygonsBarActor->SetTitle(GetInterfaceTypeName(type).c_str());
@@ -1580,28 +1603,15 @@ void MainTigerWindow::InitInterfacePolygonsActor(
     m_currentInterfacePolygonsType = type;
 }
 
-/*void MainTigerWindow::keyPressEvent(QKeyEvent* event)
-{
-    //QString msg = "You pressed " + event->key();
-    //QMessageBox::information(this, APP_TITLE, msg);
-}*/
-
-/*void MainTigerWindow::keyReleaseEvent(QKeyEvent* event)
-{
-    //QString msg = "You released " + event->key();
-    QMessageBox::information(this, APP_TITLE, "Key released");
-
-    // Stop propagating the key event to the base classes
-    event->ignore();
-}*/
-
 void MainTigerWindow::SetInterfacePolygons(bool render)
 {
-    // Initialize the vector to store the interface polygons between the pieces of the assembly
+    // Initialize the vector to store the interface polygons between the pieces
+    // of the assembly
     std::vector<std::shared_ptr<VF>> interfaces;
 
-    // If there are interface polygons then set them to the workspace and initialize the respective
-    // actor. Otherwise, indicate there are no interface polygons
+    // If there are interface polygons then set them to the workspace and 
+    // initialize the respective actor. Otherwise, indicate there are no 
+    // interface polygons
     if (m_workspace->GetAssembly()->CalculateInterfacePolygons(m_workspace->GetTessellation(), interfaces))
     {
         // Set the interface polygons to the workspace
@@ -1768,7 +1778,8 @@ void MainTigerWindow::on_actionNewBendedSquareGeometry_triggered()
     // Initialize the actors that renders the tessellation
     InitTessellationActors(m_workspace->GetTessellation()->Geometry());
 
-    // If the tessellation geometry is not visible then ask whether or not to show it
+    // If the tessellation geometry is not visible then ask whether or not to 
+    // show it
     if (!m_viewTessellationGeometry)
     {
         AskViewTessellationGeometry();
@@ -1813,7 +1824,8 @@ void MainTigerWindow::on_actionNewCyclideGeometry_triggered()
     // Initialize the actors that renders the tessellation
     InitTessellationActors(m_workspace->GetTessellation()->Geometry());
 
-    // If the tessellation geometry is not visible then ask whether or not to show it
+    // If the tessellation geometry is not visible then ask whether or not to 
+    // show it
     if (!m_viewTessellationGeometry)
     {
         AskViewTessellationGeometry();
@@ -1861,7 +1873,8 @@ void MainTigerWindow::on_actionNewCylinderGeometry_triggered()
     // Initialize the actors that renders the tessellation
     InitTessellationActors(m_workspace->GetTessellation()->Geometry());
 
-    // If the tessellation geometry is not visible then ask whether or not to show it
+    // If the tessellation geometry is not visible then ask whether or not to 
+    // show it
     if (!m_viewTessellationGeometry) 
     {
         AskViewTessellationGeometry();
@@ -1902,7 +1915,8 @@ void MainTigerWindow::on_actionNewEquilateralTriangleGeometry_triggered()
     // Initialize the actors that renders the tessellation
     InitTessellationActors(m_workspace->GetTessellation()->Geometry());
 
-    // If the tessellation geometry is not visible then ask whether or not to show it
+    // If the tessellation geometry is not visible then ask whether or not to 
+    // show it
     if (!m_viewTessellationGeometry)
     {
         AskViewTessellationGeometry();
@@ -1944,7 +1958,8 @@ void MainTigerWindow::on_actionNewNsidedRegularPolygonGeometry_triggered()
     // Initialize the actors that renders the tessellation
     InitTessellationActors(m_workspace->GetTessellation()->Geometry());
 
-    // If the tessellation geometry is not visible then ask whether or not to show it
+    // If the tessellation geometry is not visible then ask whether or not to 
+    // show it
     if (!m_viewTessellationGeometry)
     {
         AskViewTessellationGeometry();
@@ -1996,16 +2011,16 @@ void MainTigerWindow::on_actionNewObjFileGeometry_triggered()
         QMessageBox::warning(this, "Warning", QString::fromStdString(objWarning));
     }
 
-    // Show any error message and exit the function (if something went wrong then let's be safe and
-    // do not generate any tessellation
+    // Show any error message and exit the function (if something went wrong 
+    // then let's be safe and do not generate any tessellation
     if (!objError.empty() || !ret) 
     {
         QMessageBox::critical(this, "Error", QString::fromStdString(objError));
         return;
     }
 
-    // Stop the process if there are more than one shape in the OBJ file. At this moment we only 
-    // support single shaped tessellations
+    // Stop the process if there are more than one shape in the OBJ file. At 
+    // this moment we only support single shaped tessellations
     if (objShapes.size() > 1) 
     {
         QMessageBox::critical(this, "Error", "File contains more than one geometry.");
@@ -2016,11 +2031,12 @@ void MainTigerWindow::on_actionNewObjFileGeometry_triggered()
     size_t nVertices = objAttributes.vertices.size() / 3;
     size_t nFaces = objShapes[0].mesh.num_face_vertices.size();
 
-    // Initialize the object to store the vertex coordinates and vertex indices of the geometry
+    // Initialize the object to store the vertex coordinates and vertex indices
+    // of the geometry
     VF vf(nVertices, nFaces);
     
-    // Traverse through the vertices from the geomnetry, get their coordinate values and store them
-    // in the VF object
+    // Traverse through the vertices from the geomnetry, get their coordinate 
+    // values and store them in the VF object
     for (size_t i = 0; i < nVertices; i += 1) 
     {
         double x = objAttributes.vertices[(i * 3) + 0];
@@ -2063,7 +2079,8 @@ void MainTigerWindow::on_actionNewObjFileGeometry_triggered()
     // Initialize the actors that renders the tessellation
     InitTessellationActors(m_workspace->GetTessellation()->Geometry());
 
-    // If the tessellation geometry is not visible then ask whether or not to show it
+    // If the tessellation geometry is not visible then ask whether or not to 
+    // show it
     if (!m_viewTessellationGeometry)
     {
         AskViewTessellationGeometry();
@@ -2112,7 +2129,8 @@ void MainTigerWindow::on_actionNewParaboloidGeometry_triggered()
     // Initialize the actors that renders the tessellation
     InitTessellationActors(m_workspace->GetTessellation()->Geometry());
 
-    // If the tessellation geometry is not visible then ask whether or not to show it
+    // If the tessellation geometry is not visible then ask whether or not to 
+    // show it
     if (!m_viewTessellationGeometry)
     {
         AskViewTessellationGeometry();
@@ -2154,7 +2172,8 @@ void MainTigerWindow::on_actionNewPlatonicSolidGeometry_triggered()
     // Initialize the actors that renders the tessellation
     InitTessellationActors(m_workspace->GetTessellation()->Geometry());
 
-    // If the tessellation geometry is not visible then ask whether or not to show it
+    // If the tessellation geometry is not visible then ask whether or not to 
+    // show it
     if (!m_viewTessellationGeometry)
     {
         AskViewTessellationGeometry();
@@ -2196,7 +2215,8 @@ void MainTigerWindow::on_actionNewRectangleGeometry_triggered()
     // Initialize the actors that renders the tessellation
     InitTessellationActors(m_workspace->GetTessellation()->Geometry());
 
-    // If the tessellation geometry is not visible then ask whether or not to show it
+    // If the tessellation geometry is not visible then ask whether or not to 
+    // show it
     if (!m_viewTessellationGeometry)
     {
         AskViewTessellationGeometry();
@@ -2256,8 +2276,8 @@ void MainTigerWindow::on_actionEditAssemblyClipAdaptiveTileOffset_triggered()
     // Initialize the object to store the checking requirements result
     Message msg;
 
-    // Check the requirements for clipping the pieces. Show a warning message if a requirement is
-    // missing
+    // Check the requirements for clipping the pieces. Show a warning message 
+    // if a requirement is missing
     if (!m_workspace->CheckClippingRequirements(msg))
     {
         QMessageBox::warning(this, APP_TITLE, msg.getText());
@@ -2296,8 +2316,8 @@ void MainTigerWindow::on_actionEditAssemblyClipTileOffset_triggered()
     // Initialize the object to store the checking requirements result
     Message msg;
 
-    // Check the requirements for clipping the pieces. Show a warning message if a requirement is
-    // missing
+    // Check the requirements for clipping the pieces. Show a warning message 
+    // if a requirement is missing
     if (!m_workspace->CheckClippingRequirements(msg))
     {
         QMessageBox::warning(this, APP_TITLE, msg.getText());
@@ -2343,16 +2363,16 @@ void MainTigerWindow::on_actionEditFlipTessellation_triggered()
     // Initialize the object to store the checking requirements result
     Message msg;
 
-    // Check the requirements for translating the centroid of the tessellation to the origin. 
-    // Show a warning message if a requirement is missing
+    // Check the requirements for translating the centroid of the tessellation 
+    // to the origin. Show a warning message if a requirement is missing
     if (!m_workspace->CheckFlipTessellationRequirements(msg))
     {
         QMessageBox::warning(this, APP_TITLE, msg.getText());
         return;
     }
 
-    // Erase the face centers from the workspace (edge directions, pieces and interface polygons 
-    // are removed as well)
+    // Erase the face centers from the workspace (edge directions, pieces and 
+    // interface polygons are removed as well)
     m_workspace->EraseTileCenters();
     m_workspace->GetTessellation()->ClearDCEL();
 
@@ -2374,8 +2394,8 @@ void MainTigerWindow::on_actionEditTessellationCentroidToOrigin_triggered()
     // Initialize the object to store the checking requirements result
     Message msg;
 
-    // Check the requirements for translating the centroid of the tessellation to the origin. 
-    // Show a warning message if a requirement is missing
+    // Check the requirements for translating the centroid of the tessellation 
+    // to the origin. Show a warning message if a requirement is missing
     if (!m_workspace->CheckCentroidToOriginRequirements(msg))
     {
         QMessageBox::warning(this, APP_TITLE, msg.getText());
@@ -2386,8 +2406,8 @@ void MainTigerWindow::on_actionEditTessellationCentroidToOrigin_triggered()
     Eigen::Vector3d C = m_workspace->GetTessellation()->Geometry().centroid(true);
     C *= -1.0;
 
-    // Erase the face centers from the workspace (edge directions, pieces and interface polygons 
-    // are removed as well)
+    // Erase the face centers from the workspace (edge directions, pieces and 
+    // interface polygons are removed as well)
     m_workspace->EraseTileCenters();
     m_workspace->GetTessellation()->ClearDCEL();
 
@@ -2409,8 +2429,8 @@ void MainTigerWindow::on_actionEditTileSubdivision_triggered()
     // Initialize the object to store the checking requirements result
     Message msg;
 
-    // Check the requirements for subdividing the tiles of the tessellation. Show a warning message
-    // if a requirement is missing
+    // Check the requirements for subdividing the tiles of the tessellation. 
+    // Show a warning message if a requirement is missing
     if (!m_workspace->CheckTileSubdivisionRequirements(msg))
     {
         QMessageBox::warning(this, APP_TITLE, msg.getText());
@@ -2433,7 +2453,8 @@ void MainTigerWindow::on_actionEditTileSubdivision_triggered()
     // Subdivide the faces of the tessellation as indicated
     m_workspace->SubdivideTessellationTiles(Tessellation::GetTileSubdivisionType(type.toStdString()));
 
-    // Get the vertex coordinates and vertex indices of the subdivided tessellation
+    // Get the vertex coordinates and vertex indices of the subdivided 
+    // tessellation
     VF vf = m_workspace->GetTessellation()->Geometry();
 
     // Clear the content of the workspace
@@ -2455,8 +2476,8 @@ void MainTigerWindow::on_actionEditDualTessellation_triggered()
     // Initialize the object to store the checking requirements result
     Message msg;
 
-    // Check the requirements for calculating the dual of the the tessellation. Show a warning 
-    // message if a requirement is missing
+    // Check the requirements for calculating the dual of the the tessellation.
+    // Show a warning message if a requirement is missing
     if (!m_workspace->CheckDualTessellationRequirements(msg))
     {
         QMessageBox::warning(this, APP_TITLE, msg.getText());
@@ -2467,14 +2488,16 @@ void MainTigerWindow::on_actionEditDualTessellation_triggered()
     dcel::DCEL geom(m_workspace->GetTessellation()->Geometry());
     VF dual = geom.Dual();
 
-    // If the tessellation has no dual then show a warning message and exit the function
+    // If the tessellation has no dual then show a warning message and exit the
+    // function
     if (dual.countVertices() == 0 || dual.countFaces() == 0)
     {
         QMessageBox::warning(this, "Calculation Incompleted", "tessellation has no dual.");
         return;
     }
 
-    // Clear the content of the workspace (scaling the tessellation makes all elements invalid)
+    // Clear the content of the workspace (scaling the tessellation makes all 
+    // elements invalid)
     ClearWorkspace();
 
     // Initialize the workspace and set the geometry of the tessellation
@@ -2493,8 +2516,8 @@ void MainTigerWindow::on_actionEditNormalizeVertices_triggered()
     // Initialize the object to store the checking requirements result
     Message msg;
 
-    // Check the requirements for normalizing the tessellation. Show a warning message if a 
-    // requirement is missing
+    // Check the requirements for normalizing the tessellation. Show a warning 
+    // message if a requirement is missing
     if (!m_workspace->CheckVertexNormalizationRequirements(msg))
     {
         QMessageBox::warning(this, APP_TITLE, msg.getText());
@@ -2513,8 +2536,8 @@ void MainTigerWindow::on_actionEditNormalizeVertices_triggered()
     // Get the normalization parameter values
     double radius = dialog.GetRadius();
 
-    // Erase the face centers from the workspace (edge directions, pieces and interface polygons 
-    // are removed as well)
+    // Erase the face centers from the workspace (edge directions, pieces and 
+    // interface polygons are removed as well)
     m_workspace->EraseTileCenters();
     m_workspace->GetTessellation()->ClearDCEL();
 
@@ -2542,8 +2565,8 @@ void MainTigerWindow::on_actionEditRotateTessellation_triggered()
     // Initialize the object to store the checking requirements result
     Message msg;
 
-    // Check the requirements for scaling the tessellation. Show a warning message if a 
-    // requirement is missing
+    // Check the requirements for scaling the tessellation. Show a warning 
+    // message if a requirement is missing
     if (!m_workspace->CheckRotateTessellationRequirements(msg))
     {
         QMessageBox::warning(this, APP_TITLE, msg.getText());
@@ -2569,8 +2592,8 @@ void MainTigerWindow::on_actionEditRotateTessellation_triggered()
     Eigen::Vector3d K(X, Y, Z);
     K.normalize();
 
-    // Erase the face centers from the workspace (edge directions, pieces and interface polygons 
-    // are removed as well)
+    // Erase the face centers from the workspace (edge directions, pieces and 
+    // interface polygons are removed as well)
     m_workspace->EraseTileCenters();
     m_workspace->GetTessellation()->ClearDCEL();
 
@@ -2592,8 +2615,8 @@ void MainTigerWindow::on_actionEditScaleTessellation_triggered()
     // Initialize the object to store the checking requirements result
     Message msg;
 
-    // Check the requirements for scaling the tessellation. Show a warning message if a 
-    // requirement is missing
+    // Check the requirements for scaling the tessellation. Show a warning 
+    // message if a requirement is missing
     if (!m_workspace->CheckScaleTessellationRequirements(msg)) 
     {
         QMessageBox::warning(this, APP_TITLE, msg.getText());
@@ -2612,8 +2635,8 @@ void MainTigerWindow::on_actionEditScaleTessellation_triggered()
     // Get the scale parameters dialog
     double factor = dialog.GetFactor();
 
-    // Erase the face centers from the workspace (edge directions, pieces and interface polygons 
-    // are removed as well)
+    // Erase the face centers from the workspace (edge directions, pieces and 
+    // interface polygons are removed as well)
     m_workspace->EraseTileCenters();
     m_workspace->GetTessellation()->ClearDCEL();
 
@@ -2661,7 +2684,8 @@ void MainTigerWindow::on_actionNewSquareGeometry_triggered()
     // Initialize the actors that renders the tessellation
 	InitTessellationActors(m_workspace->GetTessellation()->Geometry());
 
-    // If the tessellation geometry is not visible then ask whether or not to show it
+    // If the tessellation geometry is not visible then ask whether or not to 
+    // show it
     if (!m_viewTessellationGeometry)
     {
         AskViewTessellationGeometry();
@@ -2705,7 +2729,8 @@ void MainTigerWindow::on_actionNewSquareGridGeometry_triggered()
     // Initialize the actors that renders the tessellation
     InitTessellationActors(m_workspace->GetTessellation()->Geometry());
 
-    // If the tessellation geometry is not visible then ask whether or not to show it
+    // If the tessellation geometry is not visible then ask whether or not to 
+    // show it
     if (!m_viewTessellationGeometry)
     {
         AskViewTessellationGeometry();
@@ -2746,7 +2771,8 @@ void MainTigerWindow::on_actionNewTorusGeometry_triggered()
     // Initialize the actors that renders the tessellation
     InitTessellationActors(m_workspace->GetTessellation()->Geometry());
 
-    // If the tessellation geometry is not visible then ask whether or not to show it
+    // If the tessellation geometry is not visible then ask whether or not to 
+    // show it
     if (!m_viewTessellationGeometry)
     {
         AskViewTessellationGeometry();
@@ -2795,7 +2821,8 @@ void MainTigerWindow::on_actionNewTruncatedConeGeometry_triggered()
     // Initialize the actors that renders the tessellation
     InitTessellationActors(m_workspace->GetTessellation()->Geometry());
 
-    // If the tessellation geometry is not visible then ask whether or not to show it
+    // If the tessellation geometry is not visible then ask whether or not to 
+    // show it
     if (!m_viewTessellationGeometry)
     {
         AskViewTessellationGeometry();
@@ -2808,13 +2835,6 @@ void MainTigerWindow::on_actionNewTruncatedConeGeometry_triggered()
 void MainTigerWindow::on_actionNewWorkspace_triggered()
 {
     QMessageBox::information(this, APP_TITLE, "on_actionNewWorkspace_triggered");
-
-	//if (m_workspace) 
-	//{
-	//	m_workspace->Clear();
-	//	m_workspace = nullptr;
-	//	//std::cout << "on_actionNewWorkspace_triggered Workspace cleAred" << std::endl;
-	//}
 }
 
 void MainTigerWindow::on_actionSaveAbaqusFile_triggered()
@@ -2841,7 +2861,8 @@ void MainTigerWindow::on_actionSaveGeogebraJsTessellationFile_triggered()
         return;
     }
 
-    // Write the JavaScript file with the commands for generating the tessellation in GeoGebra
+    // Write the JavaScript file with the commands for generating the 
+    // tessellation in GeoGebra
     m_workspace->WriteTessellationGeogebraJsFile(filename.toStdString());
 
     // Indicate the file was generated successfully
@@ -2950,7 +2971,8 @@ void MainTigerWindow::on_actionSaveObjWorkspaceFile_triggered()
         return;
     }
 
-    // Initialize the OBJ exporter, get the content from the scene, and save it in a OBJ file
+    // Initialize the OBJ exporter, get the content from the scene, and save it
+    // in a OBJ file
     vtkSmartPointer<vtkOBJExporter> exporter = vtkSmartPointer<vtkOBJExporter>::New();
     exporter->SetRenderWindow(qvtkWidget->renderWindow());
     exporter->SetFilePrefix(filename.toStdString().c_str());
@@ -2964,22 +2986,24 @@ void MainTigerWindow::on_actionTicCalculateInterfaces_triggered()
     // Initialize the object to store the checking requirements result
     Message msg;
 
-    // Check the requirements to calculate the interface polygons between the blocks. Show a 
-    // warning message if a requirement is missing
+    // Check the requirements to calculate the interface polygons between the 
+    // blocks. Show a warning message if a requirement is missing
     if (!m_workspace->CheckInterfacePolygonsRequirements(msg)) 
     {
         QMessageBox::warning(this, APP_TITLE, msg.getText());
         return;
     }
 
-    // Initialize the vector to store the interface polygons between the blocks of the assembly
+    // Initialize the vector to store the interface polygons between the blocks
+    // of the assembly
     std::vector<std::shared_ptr<VF>> interfaces;
 
     // Calculate the interface polygons
     size_t nInterfaces = m_workspace->GetAssembly()->CalculateInterfacePolygons(m_workspace->GetTessellation(), interfaces);
 
-    // If the number of interfaces is not the same as the number of internal edges in the 
-    // tessellation then redraw the blocks since there are new disabled blocks
+    // If the number of interfaces is not the same as the number of internal 
+    // edges in the tessellation then redraw the blocks since there are new 
+    // disabled blocks
     if (nInterfaces != m_workspace->GetTessellation()->DCEL()->NumberOfInternalEdges()) 
     {
         InitAssemblyActors(m_workspace->GetTessellation(), m_workspace->GetAssembly());
@@ -3043,7 +3067,8 @@ void MainTigerWindow::on_actionSaveVrmlWorkspaceFile_triggered()
         return;
     }
 
-    // Initialize the VRML exporter, set the render window, and save its content in the VRML file
+    // Initialize the VRML exporter, set the render window, and save its 
+    // content in the VRML file
     vtkSmartPointer<vtkVRMLExporter> exporter = vtkSmartPointer<vtkVRMLExporter>::New();
     exporter->SetRenderWindow(qvtkWidget->renderWindow());
     exporter->SetFileName(filename.toStdString().c_str());
@@ -3064,7 +3089,7 @@ void MainTigerWindow::on_actionTicAddBlockForceTorqueLoads_triggered()
         return;
     }
 
-    AddBlockTorqueLoadParametersDialog dialog;
+    AddBlockLoadParametersDialog dialog;
 
     // Exit the function if the user canceled the dialog
     if (dialog.exec() == QDialog::Rejected)
@@ -3260,8 +3285,8 @@ void MainTigerWindow::on_actionTicHeightBisectionMethod_triggered()
     // Initialize the object to store the checking requirements result
     Message msg;
 
-    // Check the requirements for generating a TIC using the Height-Bisection method. Show a 
-    // warning message if a requirement is missing
+    // Check the requirements for generating a TIC using the Height-Bisection 
+    // method. Show a warning message if a requirement is missing
     if (!m_workspace->CheckHeightBisectionRequirements(msg))
     {
         QMessageBox::warning(this, APP_TITLE, msg.getText());
@@ -3286,8 +3311,8 @@ void MainTigerWindow::on_actionTicHeightBisectionMethod_triggered()
     ClearAssemblyActors();
     ClearInteracePolygonsActor();
 
-    // Generate the TIC using the Height-Bisection method. Then, set it as the assembly in the 
-    // workspace
+    // Generate the TIC using the Height-Bisection method. Then, set it as the 
+    // assembly in the workspace
     m_workspace->SetAssemblyUsingHeightBisectionMethod(topHeight, boundary);
 
     // Initialize the actors for rendering the assembly
@@ -3297,13 +3322,83 @@ void MainTigerWindow::on_actionTicHeightBisectionMethod_triggered()
     qvtkWidget->renderWindow()->Render();
 }
 
+void MainTigerWindow::on_actionTicResetBlockLoads_triggered() 
+{
+    // Initialize the object to store the checking requirements result
+    Message msg;
+
+    // Check the requirements 
+    if (!m_workspace->CheckAssemblyCodeRequirements(msg))
+    {
+        QMessageBox::warning(this, APP_TITLE, msg.getText());
+        return;
+    }
+
+    ResetBlockLoadsParametersDialog dialog;
+
+    // Exit the function if the user canceled the dialog
+    if (dialog.exec() == QDialog::Rejected)
+    {
+        return;
+    }
+
+    // TODO: Add UI validation of the block indices
+    QString blockIndices = dialog.GetBlockIndices().simplified().replace(" ", "").toLower();
+    QString loadType = dialog.GetLoadType();
+
+    // Determine which block loads will be reset
+    bool resetForce = false, resetTorque = false;
+
+    if (loadType.compare("All") == 0) 
+    {
+        resetForce = true;
+        resetTorque = true;
+    }
+    else if (loadType.compare("Force") == 0) 
+    {
+        resetForce = true;
+    }
+    else 
+    {
+        resetTorque = true;
+    }
+
+    // Split the given block indices text by comma. Then, get the indices of 
+    // the selected blocks
+    std::vector<std::string> tokens = utils::split(blockIndices.toStdString(), ',');
+    std::vector<size_t> selected = m_workspace->SelectedBlocks(tokens);
+
+    size_t blockCount = 0;
+    
+    // Traverse through the blocks and reset the respective loads as indicated
+    for (auto it = selected.begin(); it != selected.end(); ++it)
+    {
+        const std::shared_ptr<Block> block = m_workspace->GetAssembly()->GetBlocks()[*it];
+
+        if (resetForce) 
+        {
+            block->SetForceLoad(0.0, 0.0, 0.0);
+        }
+
+        if (resetTorque) 
+        {
+            block->SetTorqueLoad(0.0, 0.0, 0.0);
+        }
+
+        blockCount += 1;
+    }
+
+    QString message(loadType + " loads reset on " + QString::number(blockCount) + " blocks.");
+    QMessageBox::information(this, APP_TITLE, message);
+}
+
 void MainTigerWindow::on_actionTicSetCentersAndDirections_triggered()
 {
     // Initialize the object to store the checking requirements result
     Message msg;
 
-    // Check the requirements for setting the centers on the faces of the tessellation. Show a 
-    // warning message if a requirement is missing
+    // Check the requirements for setting the centers on the faces of the 
+    // tessellation. Show a warning message if a requirement is missing
     if (!m_workspace->CheckSetFaceCentersRequirements(msg))
     {
         QMessageBox::warning(this, APP_TITLE, msg.getText());
@@ -3347,8 +3442,8 @@ void MainTigerWindow::on_actionTicStaticEquilibriumAnalysis_triggered()
     // Initialize the object to store the checking requirements result
     Message msg;
 
-    // Check the requirements to run the equilibrium analysis. Show a warning message if a 
-    // requirement is missing
+    // Check the requirements to run the equilibrium analysis. Show a warning 
+    // message if a requirement is missing
     if (!m_workspace->CheckEquilibriumAnalysisRequirements(msg))
     {
         QMessageBox::warning(this, APP_TITLE, msg.getText());
@@ -3391,8 +3486,8 @@ void MainTigerWindow::on_actionTicStaticEquilibriumAnalysis_triggered()
     {
         std::shared_ptr<EquilibriumAnalysis::Result> results = m_workspace->GetEquilibriumResults();
 
-        // Normalize the force magnitudes if indicated. This normalization divides all force 
-        // magnitudes by the density value
+        // Normalize the force magnitudes if indicated. This normalization 
+        // divides all force magnitudes by the density value
         if (normalize)
         {
             results->Normalize(density);
@@ -3466,7 +3561,8 @@ void MainTigerWindow::on_actionTicStaticEquilibriumAnalysis_triggered()
         }
         }
 
-        // Initialize the interface polygons actor usign the result values for coloring the vertices
+        // Initialize the interface polygons actor usign the result values for 
+        // coloring the vertices
         InitInterfacePolygonsActor(
             m_workspace->GetInterfacePolygons(),
             results,
@@ -3491,8 +3587,8 @@ void MainTigerWindow::on_actionTicTiltingAngleMethod_triggered()
     // Initialize the object to store the checking requirements result
     Message msg;
 
-    // Check the requirements for generating a TIC using the Tilting Angle method. Show a warning 
-    // message if a requirement is missing
+    // Check the requirements for generating a TIC using the Tilting Angle 
+    // method. Show a warning message if a requirement is missing
     if (!m_workspace->CheckTiltingAngleRequirements(msg))
     {
         QMessageBox::warning(this, APP_TITLE, msg.getText());
@@ -3522,8 +3618,8 @@ void MainTigerWindow::on_actionTicTiltingAngleMethod_triggered()
     ClearAssemblyActors();
     ClearInteracePolygonsActor();
 
-    // Generate the TIC using the Tilting Angle method. Then, set it as the assembly in the 
-    // workspace
+    // Generate the TIC using the Tilting Angle method. Then, set it as the 
+    // assembly in the workspace
     m_workspace->SetAssemblyUsingTiltingAngleMethod(angle);
 
     // Initialize the actors for rendering the assembly

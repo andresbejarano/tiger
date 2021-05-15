@@ -7,15 +7,17 @@
 #include <map>
 
 //
-// The namespace for storing the classes and methods related to the Equilibrium Analysis.
+// The namespace for storing the classes and methods related to the Equilibrium
+// Analysis.
 //
 namespace EquilibriumAnalysis
 {
 
     //
-    // The class for storing the information of a force after running the equilibrium analysis. 
-    // Each force object stores its respective component magnitudes and the indices of the 
-    // interface polygon and respective vertex.
+    // The class for storing the information of a force after running the 
+    // equilibrium analysis. Each force object stores its respective component 
+    // magnitudes and the indices of the interface polygon and respective 
+    // vertex.
     //
     class Force 
     {
@@ -70,26 +72,29 @@ namespace EquilibriumAnalysis
     };
 
     //
-    // The class representing the results of an equilibrium analysis. Results store the magnitudes of 
-    // the forces along with some metadata for visualization purposes.
+    // The class representing the results of an equilibrium analysis. Results 
+    // store the magnitudes of the forces along with some metadata for 
+    // visualization purposes.
     //
     class Result 
     {
 
     public:
 
-        // The compression component of the optimal energy value. It is the sum of squared 
-        // compression components from all forces
+        // The compression component of the optimal energy value. It is the sum
+        // of squared compression components from all forces
         double compressionEnergy;
 
         // The optimal energy value
         double energy;
 
-        // The map for storing the forces at the vertices of the interface polygons. The key of 
-        // each force is defined by the indices of the respective interface polygon and vertex
+        // The map for storing the forces at the vertices of the interface 
+        // polygons. The key of each force is defined by the indices of the 
+        // respective interface polygon and vertex
         std::map<std::tuple<size_t, size_t>, Force> forces;
 
-        // Indicates if the equilibrium analysis found a solution of the quadratic program
+        // Indicates if the equilibrium analysis found a solution of the 
+        // quadratic program
         bool isSolution;
 
         // The maximum compression magnitude among all forces
@@ -116,16 +121,16 @@ namespace EquilibriumAnalysis
         // The minimum V tangential magnitude among all forces
         double minVTangential;
 
-        // The tension component of the optimal energy value. It is the sum of squared tension 
-        // components from all forces
+        // The tension component of the optimal energy value. It is the sum of 
+        // squared tension components from all forces
         double tensionEnergy;
 
-        // The U tangential component of the optimal energy value. It is the sum of squared U 
-        // tangential components from all forces
+        // The U tangential component of the optimal energy value. It is the 
+        // sum of squared U tangential components from all forces
         double uTangentialEnergy;
 
-        // The V tangential component of the optimal energy value. It is the sum of squared V 
-        // tangential components from all forces
+        // The V tangential component of the optimal energy value. It is the 
+        // sum of squared V tangential components from all forces
         double vTangentialEnergy;
 
     public:
@@ -177,19 +182,22 @@ namespace EquilibriumAnalysis
 
     //
     // Runs the equilibrium analysis. 
-    // @param const std::vector<Eigen::Vector3d> & C The reference to the vector with the centroid 
-    // of the blocks.
-    // @param const std::vector<std::vector<double>> & W The reference to the vector with the loads
-    // that apply to the blocks.
-    // @param const std::list<dcel::DCEL> & I The reference to the list with the geometry of the
-    // interface polygons between blocks.
-    // @param const std::vector<std::tuple<size_t, size_t>> & BI The reference to the vector with 
-    // the tuples indicating how blocks and interface polygons interact. First index references the
-    // block, second index references the interface polygon
+    // @param const std::vector<Eigen::Vector3d> & C The reference to the 
+    // vector with the centroid of the blocks.
+    // @param const std::vector<std::vector<double>> & W The reference to the 
+    // vector with the loads that apply to the blocks.
+    // @param const std::list<dcel::DCEL> & I The reference to the list with 
+    // the geometry of the interface polygons between blocks.
+    // @param const std::vector<std::tuple<size_t, size_t>> & BI The reference 
+    // to the vector with the tuples indicating how blocks and interface 
+    // polygons interact. First index references the block, second index 
+    // references the interface polygon
     // @param double friction The friction coefficient.
     // @param double & energy The optimal value.
-    // @param bool verbose Indicates whether to print results as they are calculated.
-    // @param bool files Indicates whether to write the files with the content of the model.
+    // @param bool verbose Indicates whether to print results as they are 
+    // calculated.
+    // @param bool files Indicates whether to write the files with the content 
+    // of the model.
     // @param std::string fileprefix
     // @param double cWeight
     // @param double tWeight

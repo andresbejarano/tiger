@@ -182,6 +182,7 @@
     <addaction name="actionTicEnableDisableSpecificBlocks"/>
     <addaction name="actionTicAddBlockWeightLoads"/>
     <addaction name="actionTicAddBlockForceTorqueLoads"/>
+    <addaction name="actionTicResetBlockLoads"/>
     <addaction name="actionTicFixBottomBlocks"/>
     <addaction name="separator"/>
     <addaction name="actionTicCalculateOverlapping"/>
@@ -714,6 +715,11 @@
    </property>
    <property name="text">
     <string>Block Indices</string>
+   </property>
+  </action>
+  <action name="actionTicResetBlockLoads">
+   <property name="text">
+    <string>Reset Block Loads</string>
    </property>
   </action>
  </widget>

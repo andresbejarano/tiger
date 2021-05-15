@@ -23,7 +23,8 @@ bool algorithms::areFaceVerticesCoplanar(const std::shared_ptr<dcel::Face> face)
     // Traverse through the half edges of the face
     do
     {
-        // Check if the start vertex of the current half edge has the ATTRIB_COPLANAR attribute
+        // Check if the start vertex of the current half edge has the 
+        // ATTRIB_COPLANAR attribute
         assert(halfedge->start->Attributes().Get<bool>(ATTRIB_COPLANAR, coplanar));
 
         // If the coplanar attribute is not true then return false
@@ -58,11 +59,12 @@ bool algorithms::faceRayIntersection(
     // Get the plane of the face
     toolkit::Plane plane = face->Plane();
 
-    // If the plane and the ray intersect then determine if the intersection point lies within the
-    // face
+    // If the plane and the ray intersect then determine if the intersection 
+    // point lies within the face
     if (planeRayIntersection(plane, ray, t, threshold))
     {
-        // Get the intersection point between the plane and the ray. Then, fix its zeros
+        // Get the intersection point between the plane and the ray. Then, fix 
+        // its zeros
         P << ray.at(t);
         utils::fixZeros(P, threshold);
 
@@ -93,12 +95,14 @@ bool algorithms::getIntersectionPointsFromPlanes(
     // Traverse through the planes and calculate their intersection points
     for (i = 0; i < nPlanes; i += 1)
     {
-        // Get the indices to the previous plane, the current plane and the next plane
+        // Get the indices to the previous plane, the current plane and the 
+        // next plane
         prevIndex = (i == 0) ? _nPlanes : i - 1;
         currIndex = i;
         nextIndex = (i == _nPlanes) ? 0 : i + 1;
 
-        // Calculate the intersection point between the previous, current and next planes
+        // Calculate the intersection point between the previous, current and 
+        // next planes
         isP = algorithms::threePlanesIntersection(
             planes.at(prevIndex),
             planes[currIndex],
@@ -154,9 +158,9 @@ bool algorithms::intersectCoplanarFaces(
             vf1.Vertex(face1Indices[e1]), 
             vf1.Vertex(face1Indices[(e1 == nVertices1 - 1) ? 0 : e1 + 1]));
 
-        // Step 1: Check if the start vertex of the current edge from the first face is within the 
-        // second face. If so, make a copy of the point and insert it into the intersection points 
-        // set
+        // Step 1: Check if the start vertex of the current edge from the first
+        // face is within the second face. If so, make a copy of the point and 
+        // insert it into the intersection points set
         if (vf2.IsPointIn(face2, edge1.A(), threshold)) 
         {
             points.emplace_back(edge1.A());
@@ -173,9 +177,10 @@ bool algorithms::intersectCoplanarFaces(
             // 
             intersect = edge1.Intersect(edge2, P, s, t, threshold);
 
-            // Step 2: Check if the current edge from the first face intersects with the current 
-            // edge from the second face. If so, check if the intersection parameters s and t lie 
-            // between 0 and 1, then insert the intersection point into the points set
+            // Step 2: Check if the current edge from the first face intersects
+            // with the current edge from the second face. If so, check if the 
+            // intersection parameters s and t lie between 0 and 1, then insert
+            // the intersection point into the points set
             if (intersect && s >= 0.0 && s <= 1.0 && t >= 0.0 && t <= 1.0) 
             {
                 points.emplace_back(P);
@@ -211,8 +216,9 @@ bool algorithms::intersectCoplanarFaces(
     // Traverse through the half edges of face F1
     do
     {
-        // Step 1: Check if the start vertex of the current half edge from face F1 is within face 
-        // F2. If so, make a copy of the point and insert it into the intersection points set
+        // Step 1: Check if the start vertex of the current half edge from face
+        // F1 is within face F2. If so, make a copy of the point and insert it 
+        // into the intersection points set
         if (F2->IsPointIn(currentF1halfedge->start->Coords(), threshold))
         {
             points.emplace_back(currentF1halfedge->start->Coords());
@@ -224,9 +230,10 @@ bool algorithms::intersectCoplanarFaces(
         // Traverse through the half edges of face F2
         do
         {
-            // Step 2: Check if the current half edge in face F1 intersects with the current half 
-            // edge in face F2. If so, check if the intersection parameters s and t lie between 0 
-            // and 1, then insert the intersection point into the intersection points set
+            // Step 2: Check if the current half edge in face F1 intersects 
+            // with the current half edge in face F2. If so, check if the 
+            // intersection parameters s and t lie between 0 and 1, then insert
+            // the intersection point into the intersection points set
             intersect = currentF1halfedge->Intersect(currentF2Halfedge, point, s, t, threshold);
 
             // 
@@ -265,7 +272,8 @@ bool algorithms::planeLineSegmentIntersection(
     double & t,
     double threshold)
 {
-    // Generate a ray using the line segment, then calculate its intersection with the plane
+    // Generate a ray using the line segment, then calculate its intersection 
+    // with the plane
     const toolkit::Ray ray = toolkit::Ray(linesegment.A(), linesegment.Direction());
     return algorithms::planeRayIntersection(plane, ray, t, threshold);
 }
@@ -276,12 +284,12 @@ bool algorithms::planeRayIntersection(
     double & t,
     double threshold)
 {
-    // Calculate the dot product between the direction vector of the ray and the normal vector of 
-    // the plane
+    // Calculate the dot product between the direction vector of the ray and 
+    // the normal vector of the plane
     double denom = ray.direction().dot(plane.Normal());
 
-    // If the absolute value of the dot product is zero then return false since there is no 
-    // intersection between the plane and the ray
+    // If the absolute value of the dot product is zero then return false since
+    // there is no intersection between the plane and the ray
     if (abs(denom) <= threshold)
     {
         return false;
@@ -290,8 +298,9 @@ bool algorithms::planeRayIntersection(
     // 
     double num = (plane.Point() - ray.start()).dot(plane.Normal());
 
-    // Calculate the parameter value along the ray for the intersection point between the plane and
-    // the ray. Then return true since there is an intersection point
+    // Calculate the parameter value along the ray for the intersection point 
+    // between the plane and the ray. Then return true since there is an 
+    // intersection point
     t = num / denom;
     return true;
 }
@@ -310,9 +319,9 @@ bool algorithms::sortPointsCCW(
     size_t nPoints = points.size(), i = 0, j = 0, k = 0;
     assert(nPoints > 0);
 
-    // Initialize the adjacency matrix between the points. This matrix will indicate whether two 
-    // points i and j are in CCW with respect of the normal vector and the given point. A 1 
-    // indicates CCW order.
+    // Initialize the adjacency matrix between the points. This matrix will 
+    // indicate whether two points i and j are in CCW with respect of the 
+    // normal vector and the given point. A 1 indicates CCW order.
     Eigen::MatrixXd M(nPoints, nPoints);
 
     double dot = 0, r = 0;
@@ -326,15 +335,17 @@ bool algorithms::sortPointsCCW(
         // Traverse through the remaining points in the vector
         for (j = i + 1; j < nPoints; j += 1)
         {
-            // Calculate N * ((Vj - Vi) x (Q - Vi)), where * is dot product and x is cross product.
-            // This value indicates if a vector from point i to point j goes in CCW direction with 
-            // respect of the normal vector N and point Q (the resultant vector and N must point at
+            // Calculate N * ((Vj - Vi) x (Q - Vi)), where * is dot product and
+            // x is cross product. This value indicates if a vector from point 
+            // i to point j goes in CCW direction with respect of the normal 
+            // vector N and point Q (the resultant vector and N must point at
             // the same half space)
             dot = (points[j] - points[i]).cross(Q - points[i]).dot(N);
 
-            // Check the value of the dot product. If it is zero (or close to zero) then the CCW 
-            // between both points is not possible in both directions (e.g., points i, j and Q are 
-            // collinear). Otherwise, process it as regular
+            // Check the value of the dot product. If it is zero (or close to 
+            // zero) then the CCW between both points is not possible in both 
+            // directions (e.g., points i, j and Q are collinear). Otherwise, 
+            // process it as regular
             if (abs(dot) < threshold)
             {
                 M(i, j) = -1.0;
@@ -342,10 +353,11 @@ bool algorithms::sortPointsCCW(
             }
             else
             {
-                // Determine the direction between both points based on the dot product value. If 
-                // it is possible to move from point i to point j in CCW then the adjacency between
-                // both points is valid; otherwise, it is not (and viceversa). Set these values in 
-                // the adjacency matrix
+                // Determine the direction between both points based on the dot
+                // product value. If it is possible to move from point i to 
+                // point j in CCW then the adjacency between both points is 
+                // valid; otherwise, it is not (and viceversa). Set these 
+                // values in the adjacency matrix
                 r = (dot > 0.0) ? 1.0 : -1.0;
                 M(i, j) = r;
                 M(j, i) = -r;
@@ -353,9 +365,9 @@ bool algorithms::sortPointsCCW(
         }
     }
 
-    // Let's refine the adjacency matrix so we have only valid edges. It is the same logic as 
-    // before but rather between points in valid directions instead of comparing with respect of 
-    // point Q
+    // Let's refine the adjacency matrix so we have only valid edges. It is the
+    // same logic as before but rather between points in valid directions 
+    // instead of comparing with respect of point Q
     for (i = 0; i < nPoints; i += 1)
     {
         for (j = 0; j < nPoints; j += 1)
@@ -398,8 +410,8 @@ bool algorithms::sortPointsCCW(
     // Initialize the vector for storing the indices of the path
     std::vector<size_t> path;
 
-    // If there is a path through the points using M such that all points are visited then store 
-    // the path in S
+    // If there is a path through the points using M such that all points are 
+    // visited then store the path in S
     if (utils::findPath(M, visited, 0, path))
     {
         // Traverse the points and clone them in the correct ccw order
@@ -449,14 +461,15 @@ bool algorithms::threePlanesIntersection(
     // Get the determinant of the system
     double D = utils::det(Aa, Ab, Ac, Ba, Bb, Bc, Ca, Cb, Cc);
 
-    // If the determinant is zero return false since there is no intersection point between the 
-    // planes
+    // If the determinant is zero return false since there is no intersection 
+    // point between the planes
     if (abs(D) <= 1e-8)
     {
         return false;
     }
 
-    // Use the Cramer's rule for obtaining the coordinates of the intersection point
+    // Use the Cramer's rule for obtaining the coordinates of the intersection 
+    // point
     double D1 = utils::det(Ad, Ab, Ac, Bd, Bb, Bc, Cd, Cb, Cc);
     double D2 = utils::det(Aa, Ad, Ac, Ba, Bd, Bc, Ca, Cd, Cc);
     double D3 = utils::det(Aa, Ab, Ad, Ba, Bb, Bd, Ca, Cb, Cd);
@@ -499,12 +512,12 @@ void algorithms::writeGeogebraJS(
         // Get the number of vertices of the current block
         size_t nVertices = blocks[bIdx].Vertices().size();
 
-        // Traverse through the vertices of the current block and write the Geogebra commands that 
-        // define them
+        // Traverse through the vertices of the current block and write the 
+        // Geogebra commands that define them
         for (size_t vIdx = 0; vIdx < nVertices; vIdx += 1)
         {
-            // Get a copy of the coordinates of the current vertex of the block. Then, fix its 
-            // zeros
+            // Get a copy of the coordinates of the current vertex of the 
+            // block. Then, fix its zeros
             Eigen::Vector3d V = blocks[bIdx].Vertices()[vIdx]->Coords();
             utils::fixZeros(V);
 
@@ -512,15 +525,18 @@ void algorithms::writeGeogebraJS(
             file << "ggbApplet.evalCommand(\"b" << bIdx << "v" << vIdx << " = Point({" <<
                 V.x() << ", " << V.y() << ", " << V.z() << "})\");" << std::endl;
 
-            // Set the index of the attribute in the ATTRIB_INDEX dynamic attribute
+            // Set the index of the attribute in the ATTRIB_INDEX dynamic 
+            // attribute
             blocks[bIdx].Vertices()[vIdx]->Attributes().Set<size_t>(ATTRIB_INDEX, vIdx);
         }
 
-        // Get the coordinates of the centroid of the current block. Then, fix its zeros
+        // Get the coordinates of the centroid of the current block. Then, fix 
+        // its zeros
         Eigen::Vector3d C = blocks[bIdx].Centroid();
         utils::fixZeros(C);
 
-        // Write the commands that define the centroid of the current block, size and color
+        // Write the commands that define the centroid of the current block, 
+        // size and color
         file << "ggbApplet.evalCommand(\"b" << bIdx << "centroid = Point({" << C.x() << ", " <<
             C.y() << ", " << C.z() << "})\");" << std::endl;
         file << "ggbApplet.setColor(\"b" << bIdx << "centroid\", 0, 255, 255);" << std::endl;
@@ -533,8 +549,8 @@ void algorithms::writeGeogebraJS(
         // Get the number of faces of the current block
         size_t nFaces = blocks[bIdx].Faces().size();
 
-        // Traverse through the faces of the current block and generate the Geogebra commands that 
-        // define them
+        // Traverse through the faces of the current block and generate the 
+        // Geogebra commands that define them
         for (size_t fIdx = 0; fIdx < nFaces; fIdx += 1)
         {
             // Get the pointer to the incident half edge of the face
@@ -580,18 +596,19 @@ void algorithms::writeGeogebraJS(
     // Get the number of interface polygons
     size_t nInterfaces = interfaces.size();
 
-    // Traverse through the interface polygons and write their geometric information
+    // Traverse through the interface polygons and write their geometric 
+    // information
     for (size_t iIdx = 0; iIdx < nInterfaces; iIdx += 1)
     {
         // Get the number of vertices of the current interface polygon
         size_t nVertices = interfaces[iIdx].Vertices().size();
 
-        // Traverse through the vertices of the current interface polygon and write the 
-        // Geogebra commands that define them
+        // Traverse through the vertices of the current interface polygon and 
+        // write the Geogebra commands that define them
         for (size_t vIdx = 0; vIdx < nVertices; vIdx += 1)
         {
-            // Get a copy of the coordinates of the current vertex of the interface polygon. Then, 
-            // fix its zeros
+            // Get a copy of the coordinates of the current vertex of the 
+            // interface polygon. Then, fix its zeros
             Eigen::Vector3d V = interfaces[iIdx].Vertices()[vIdx]->Coords();
             utils::fixZeros(V);
 
@@ -602,16 +619,18 @@ void algorithms::writeGeogebraJS(
                 std::endl;
             file << "ggbApplet.setPointSize(\"i" << iIdx << "v" << vIdx << "\", 9);" << std::endl;
 
-            // Set the index of the attribute in the ATTRIB_INDEX dynamic attribute
+            // Set the index of the attribute in the ATTRIB_INDEX dynamic 
+            // attribute
             interfaces[iIdx].Vertices()[vIdx]->Attributes().Set<size_t>(ATTRIB_INDEX, vIdx);
         }
 
-        // Get the coordinates of the centroid of the current interface polygon. Then, fix its 
-        // zeros
+        // Get the coordinates of the centroid of the current interface 
+        // polygon. Then, fix its zeros
         Eigen::Vector3d C = interfaces[iIdx].Faces()[0]->Centroid();
         utils::fixZeros(C);
 
-        // Write the command that defines the centroid of the current interface polygon
+        // Write the command that defines the centroid of the current interface
+        // polygon
         file << "ggbApplet.evalCommand(\"i" << iIdx << "center = Point({" << C.x() << ", " <<
             C.y() << ", " << C.z() << "})\");" << std::endl;
 
@@ -653,8 +672,8 @@ void algorithms::writeGeogebraJS(
         // Color the current interface polygon
         file << "ggbApplet.setColor(\"i" << iIdx << "f\", 255, 0, 255);" << std::endl;
 
-        // Get the normal and tangential vectors of the current interface polygon. Then, fix their 
-        // zeros
+        // Get the normal and tangential vectors of the current interface 
+        // polygon. Then, fix their zeros
         Eigen::Vector3d N = interfaces[iIdx].Faces()[0]->Normal(true);
         Eigen::Vector3d U = interfaces[iIdx].Faces()[0]->halfedge->Direction(true);
         Eigen::Vector3d V = N.cross(U).normalized();
@@ -662,8 +681,8 @@ void algorithms::writeGeogebraJS(
         utils::fixZeros(U);
         utils::fixZeros(V);
 
-        // Write the commands that define the normal and tangential vectors of the current 
-        // interface polygon
+        // Write the commands that define the normal and tangential vectors of 
+        // the current interface polygon
         file << "ggbApplet.evalCommand(\"i" << iIdx << "N = UnitVector(Segment(i" << iIdx <<
             "center, i" << iIdx << "center + (" << N.x() << ", " << N.y() << ", " << N.z() <<
             ")))\");" << std::endl;
@@ -695,7 +714,8 @@ void algorithms::writeGeogebraJS(
         utils::fixZeros(yref);
         utils::fixZeros(zref);
 
-        // Write the command that defines the centroid of the current interface polygon
+        // Write the command that defines the centroid of the current interface
+        // polygon
         file << "ggbApplet.evalCommand(\"O = Point({" << origin.x() << ", " << origin.y() <<
             ", " << origin.z() << "})\");" << std::endl;
 

@@ -686,7 +686,7 @@ void Block::SetEnabled(bool enabled)
     m_enabled = enabled;
 }
 
-void Block::setForceLoad(double x, double y, double z) 
+void Block::SetForceLoad(double x, double y, double z) 
 {
     m_loads[0] = x;
     m_loads[1] = y;

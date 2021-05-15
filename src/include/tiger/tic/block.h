@@ -279,7 +279,7 @@ public:
 
     //
     //
-    void setForceLoad(double x, double y, double z);
+    void SetForceLoad(double x, double y, double z);
 
     //
     //

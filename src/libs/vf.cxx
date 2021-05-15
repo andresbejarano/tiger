@@ -160,11 +160,13 @@ double VF::area(size_t fIdx) const
 
 void VF::axisAlignedBoundingBox(Eigen::Vector3d & min, Eigen::Vector3d & max) const
 {
-    // Initialize both min and max points using the coordinates of the first vertex of the geometry
+    // Initialize both min and max points using the coordinates of the first 
+    // vertex of the geometry
     min << m_V(0, 0), m_V(0, 1), m_V(0, 2);
     max << min;
 
-     // Traverse through the vertices of the geometry and update the corner points respectively
+     // Traverse through the vertices of the geometry and update the corner 
+    // points respectively
     for (Eigen::Index i = 1; i < m_addVertexIndex; i += 1)
     {
         if (m_V(i, 0) < min.x())
@@ -299,7 +301,8 @@ size_t VF::countEdges() const
             }
         }
 
-        // Check for the last edge between the first and last vertices of the face
+        // Check for the last edge between the first and last vertices of the 
+        // face
         i = m_F[fIdx][0], j = m_F[fIdx][nVertices];
 
         edge = std::make_tuple(std::min(i, j), std::max(i, j));
@@ -500,7 +503,8 @@ bool VF::IsPointIn(size_t face, const Eigen::Vector3d & P, double threshold) con
 {
     assert(face >= 0 && face < m_addFaceIndex);
 
-    // Test 1: Check if point P lies in the same plane of the face, if not then return false
+    // Test 1: Check if point P lies in the same plane of the face, if not then
+    // return false
     if (!Plane(face).IsPointInPlane(P, threshold)) 
     {
         return false;
@@ -516,8 +520,8 @@ bool VF::IsPointIn(size_t face, const Eigen::Vector3d & P, double threshold) con
     // Keep the coordinates of the first vertex of the face
     V0 << m_V(m_F[face][0], 0), m_V(m_F[face][0], 1), m_V(m_F[face][0], 2);
 
-    // Traverse through the edges of the face. Here we define a triangle between vertex v0 and the 
-    // end points of the current edge
+    // Traverse through the edges of the face. Here we define a triangle 
+    // between vertex v0 and the end points of the current edge
     for (i = 1; i < nVertices; i += 1) 
     {
         j = i + 1;
@@ -525,8 +529,8 @@ bool VF::IsPointIn(size_t face, const Eigen::Vector3d & P, double threshold) con
         Vi << m_V(m_F[face][i], 0), m_V(m_F[face][i], 1), m_V(m_F[face][i], 2);
         Vj << m_V(m_F[face][j], 0), m_V(m_F[face][j], 1), m_V(m_F[face][j], 2);
 
-        // Test 2: Check if P lies within the triangle defined by points v0, v1 and v2. If that's 
-        // the case then return true
+        // Test 2: Check if P lies within the triangle defined by points v0, v1
+        // and v2. If that's the case then return true
         if (utils::isPointInTriangle(P, V0, Vi, Vj, threshold)) 
         {
             return true;
@@ -536,7 +540,8 @@ bool VF::IsPointIn(size_t face, const Eigen::Vector3d & P, double threshold) con
     // 
     toolkit::LineSegment edge;
 
-    // Traverse through the edges of the face and check if the point lies at any of them
+    // Traverse through the edges of the face and check if the point lies at 
+    // any of them
     for (i = 0; i < nVertices - 1; i += 1) 
     {
         j = (i == nVertices - 1) ? 0 : i + 1;
@@ -546,7 +551,8 @@ bool VF::IsPointIn(size_t face, const Eigen::Vector3d & P, double threshold) con
 
         edge.Set(Vi, Vj);
 
-        // Test 3: Check if P lies within the current edge. If that's the case then return true
+        // Test 3: Check if P lies within the current edge. If that's the case 
+        // then return true
         if (edge.IsPointIn(P, threshold)) 
         {
             return true;
@@ -725,8 +731,8 @@ void VF::Translate(const Eigen::Vector3d & D)
 
 VF VF::TriangulateFacesByVertices() const
 {
-    // The new number of vertices of the triangulates geometry is the current number of vertices 
-    // plus the number of faces (one new vertex per face)
+    // The new number of vertices of the triangulates geometry is the current 
+    // number of vertices plus the number of faces (one new vertex per face)
     size_t nNewVertices = (size_t)m_addVertexIndex + m_addFaceIndex;
 
     size_t nNewFaces = 0, fIdx, newIdx = 0, nFaceVertices = 0, vIdx, jIdx;
@@ -813,13 +819,14 @@ double VF::Volume() const
         // Keep the information of the first vertex of the face
         V0 << m_V(m_F[fIdx][0], 0), m_V(m_F[fIdx][0], 1), m_V(m_F[fIdx][0], 2);
 
-        // Initialize the variables for the centroid, normal and area of the current face
+        // Initialize the variables for the centroid, normal and area of the 
+        // current face
         C << V0;
         N << 0, 0, 0;
         area = 0;
 
-        // Traverse through the vertices of the current face, update the centroid, normal and area
-        // values accordingly
+        // Traverse through the vertices of the current face, update the 
+        // centroid, normal and area values accordingly
         for (i = 1; i < nIndices; i += 1) 
         {
             // Get the information of the vertices from the current edge
@@ -834,17 +841,18 @@ double VF::Volume() const
             area += abs(X.norm());
         }
 
-        // Add the last vertex and calculate the centroid (divide by the number of vertices of the 
-        // face)
+        // Add the last vertex and calculate the centroid (divide by the number
+        // of vertices of the face)
         C += Vj;
         C /= (double)(nIndices + 1);
 
-        // Calculate the normal vector (divide by the number of triangles of the face) and 
-        // normalize it
+        // Calculate the normal vector (divide by the number of triangles of 
+        // the face) and normalize it
         N /= (double)(nIndices - 1);
         N.normalize();
 
-        // Update the volume value (do not divide by 2, it'll be done at the end)
+        // Update the volume value (do not divide by 2, it'll be done at the 
+        // end)
         volume += C.dot(N) * area;
     }
 
@@ -926,8 +934,8 @@ void VF::WriteGeogebraJs(
         // Set the index of the face
         faces[i]->Attributes().Set<size_t>(ATTRIB_INDEX, i);
 
-        // If the current face is planar then write its indices using a single polygon. Otherwise, 
-        // write its indices as triangles
+        // If the current face is planar then write its indices using a single 
+        // polygon. Otherwise, write its indices as triangles
         if (faces[i]->IsPlanar(threshold))
         {
             faces[i]->WritePlanarGeogebraJs(ss, prefix);

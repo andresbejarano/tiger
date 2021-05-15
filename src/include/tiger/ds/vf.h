@@ -102,8 +102,8 @@ public:
 
     //
     // Adds a face.
-    // @param const std::vector<size_t> & indices The reference to the vector with
-    // the indices of the new face.
+    // @param const std::vector<size_t> & indices The reference to the vector 
+    // with the indices of the new face.
     // @return size_t The index of the new face.
     //
     size_t addFace(const std::vector<size_t> & indices);
@@ -138,15 +138,16 @@ public:
 
     //
     // Calculates the Axis Aligned Bounding Box of the geometry.
-    // @param Eigen::Vector3d & min The coordinates of the minimum corner of the 
-    // box.
-    // @param Eigen::Vector3d & max The coordinates of the maximum corner of the 
-    // box.
+    // @param Eigen::Vector3d & min The coordinates of the minimum corner of 
+    // the box.
+    // @param Eigen::Vector3d & max The coordinates of the maximum corner of 
+    // the box.
     //
     void axisAlignedBoundingBox(Eigen::Vector3d & min, Eigen::Vector3d & max) const;
 
     //
-    // Calculates the centroid (arithmetic mean) of the vertices of the geometry.
+    // Calculates the centroid (arithmetic mean) of the vertices of the 
+    // geometry.
     // @param bool fixZeros Indicates whether to fix the values close to zero.
     // @param double threshold The threshold for values close to zero.
     // @return Eigen::Vector3d The centroid of the geometry.
@@ -154,8 +155,8 @@ public:
     Eigen::Vector3d centroid(bool fixZeros = false, double threshold = 1e-8) const;
 
     //
-    // Returns the centroid of the face at a given index. Centroid is calculated 
-    // as the arithmetic mean of the vertices.
+    // Returns the centroid of the face at a given index. Centroid is 
+    // calculated as the arithmetic mean of the vertices.
     // @param size_t index The index of the face.
     // @param bool fixZeros
     // @param double threshold
@@ -224,10 +225,10 @@ public:
     // Returns the direction vector of an edge in a face.
     // @param size_t face The index of the face.
     // @param size_t edge The index of the edge.
-    // @param bool normalize Indicates whether to normalize or not the direction 
-    // vector.
-    // @param bool fixZeros Indicates whether to fix or not the zero values of the
+    // @param bool normalize Indicates whether to normalize or not the 
     // direction vector.
+    // @param bool fixZeros Indicates whether to fix or not the zero values of 
+    // the direction vector.
     // @param double threshold The threshold for values close to zero.
     // @return Eigen::Vector3d The direction of the edge in the face.
     //
@@ -273,13 +274,15 @@ public:
     //
     // Checks if a face has an even number of sides.
     // @param size_t face The index of the face.
-    // @return bool Indicates whether the face has an even number of sides or not.
+    // @return bool Indicates whether the face has an even number of sides or 
+    // not.
     //
     bool HasEvenNumberOfSides(size_t face) const;
 
     //
-    // Indicates whether the information of the geometry is complete. That is, it 
-    // has the number of vertices and faces indicated when constructing the object.
+    // Indicates whether the information of the geometry is complete. That is, 
+    // it has the number of vertices and faces indicated when constructing the 
+    // object.
     //
     bool IsComplete() const;
 
@@ -288,14 +291,14 @@ public:
     // @param size_t face The index of the face.
     // @param const toolkit::Plane & plane The reference to the plane.
     // @param double threshold The threshold for values close to zero.
-    // @return bool Indicates whether the face is coplanar with the given plane or
-    // not.
+    // @return bool Indicates whether the face is coplanar with the given plane
+    // or not.
     //
     bool IsCoplanar(size_t face, const toolkit::Plane & plane, double threshold = 1e-8) const;
 
     //
-    // Checks if a face is planar. That is, all vertices of the face are coplanar 
-    // with the plane of the face.
+    // Checks if a face is planar. That is, all vertices of the face are 
+    // coplanar with the plane of the face.
     // @param size_t face The index of the face.
     // @param double threshold The threshold value for zero values.
     // @return bool Indicates whether the face is planar.
@@ -303,8 +306,8 @@ public:
     bool IsPlanar(size_t face, double threshold = 1e-8) const;
 
     //
-    // Checks whether a point P lies either within a given face or in one of its 
-    // edges. We assume the face is convex and its vertices are coplanar.
+    // Checks whether a point P lies either within a given face or in one of 
+    // its edges. We assume the face is convex and its vertices are coplanar.
     // @param size_t face The index of the face.
     // @param const Eigen::Vector3d & P The reference to the point.
     // @param double threshold The threshold for values close to zero.
@@ -344,8 +347,8 @@ public:
     // Returns the plane that contains the information of the faces at a given 
     // index.
     // @param size_t index The index of the face.
-    // @param bool normalize Indicates whether to normalize the normal vector of 
-    // the plane.
+    // @param bool normalize Indicates whether to normalize the normal vector 
+    // of the plane.
     // @param bool fixZeros Indicates whether to fix the zero values.
     // @param double threshold The threshold for values close to zero.
     // @return toolkit::Plane The plane.
@@ -389,7 +392,8 @@ public:
     void Set(const VF & vf);
 
     //
-    // @param const Eigen::Vector3d & D The reference to the translation vector.
+    // @param const Eigen::Vector3d & D The reference to the translation 
+    // vector.
     //
     void Translate(const Eigen::Vector3d & D);
 

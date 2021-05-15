@@ -40,7 +40,8 @@ private:
 	// Indicates if the geometry of the assembly is visible
 	bool m_viewAssemblyGeometry;
 
-	// Indicates if the basis vectors representing the (X, Y, Z) axes are visible
+	// Indicates if the basis vectors representing the (X, Y, Z) axes are 
+    // visible
 	bool m_viewAxes;
 
 	// Indicates if the edge directions are visible
@@ -132,7 +133,8 @@ public:
 	~MainTigerWindow();
 
 	//
-	// Indicates if the basis vectors representing the (X, Y, Z) axes are visible.
+	// Indicates if the basis vectors representing the (X, Y, Z) axes are 
+    // visible.
 	// @return bool The view state of the axes.
 	//
 	bool AreAxesVisible() const;
@@ -202,8 +204,8 @@ private:
 public:
 
 	//
-	// Clears the content of the workspace, including the actors associated to its
-    // elements.
+	// Clears the content of the workspace, including the actors associated to 
+    // its elements.
 	//
 	void ClearWorkspace();
 
@@ -281,9 +283,9 @@ private:
     void InitEdgeDirectionsActor(const std::shared_ptr<dcel::DCEL> dcel, double length = 0.5);
 
 	//
-	// Initializes the actor to render the tessellation. NOTE: Call this function 
-    // only after adding the renderer to the VTK render window of the Qt VTK 
-    // widget.
+	// Initializes the actor to render the tessellation. NOTE: Call this 
+    // function only after adding the renderer to the VTK render window of the 
+    // Qt VTK widget.
 	// @param const dcel::DCEL & domain The reference to the geometry of the 
     // tessellation.
 	//
@@ -632,6 +634,12 @@ public slots:
     // method menu item.
     //
     void on_actionTicHeightBisectionMethod_triggered();
+
+    // 
+    // Slot function called when the user clicks the TIC reset block loads menu
+    // item.
+    // 
+    void on_actionTicResetBlockLoads_triggered();
 
     //
     // Slot function called when the user clicks the TIC set center and 
