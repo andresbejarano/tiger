@@ -332,20 +332,10 @@ private:
     void InitInterfacePolygonsActor(
         const std::shared_ptr<InterfacePolygons> intfs,
         const std::shared_ptr<EquilibriumAnalysis::Result> results, 
-        INTERFACES type);
-
-protected:
-
-    //
-    //
-    //void keyPressEvent(QKeyEvent* event);
-
-    //
-    //
-    //void keyReleaseEvent(QKeyEvent* event);
-
-private:
-
+        INTERFACES type,
+        bool useForceCaps = false,
+        double minForceCap = 1.0,
+        double maxForceCap = 1.0);
 
     //
     //
@@ -680,6 +670,11 @@ public slots:
     // (X, Y, Z) axes.
 	//
 	void on_actionViewAxes_triggered();
+
+    //
+    // Slot function called when the user clicks the cap forces menu item.
+    //
+    void on_actionViewCapInterfaceForces_triggered();
 
     //
     //

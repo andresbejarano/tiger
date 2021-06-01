@@ -222,6 +222,8 @@
       <addaction name="actionViewTensionForces"/>
       <addaction name="actionViewUTangentialForces"/>
       <addaction name="actionViewVTangentialForces"/>
+      <addaction name="separator"/>
+      <addaction name="actionViewCapInterfaceForces"/>
      </widget>
      <addaction name="actionViewAxes"/>
      <addaction name="actionViewGrid"/>
@@ -720,6 +722,11 @@
   <action name="actionTicResetBlockLoads">
    <property name="text">
     <string>Reset Block Loads</string>
+   </property>
+  </action>
+  <action name="actionViewCapInterfaceForces">
+   <property name="text">
+    <string>Cap Forces</string>
    </property>
   </action>
  </widget>

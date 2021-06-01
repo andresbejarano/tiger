@@ -47,6 +47,7 @@
 #include "centerdirectionparametersdialog.h"
 #include "cyclideparametersdialog.h"
 #include "cylinderparametersdialog.h"
+#include "forcecapsparametersdialog.h"
 #include "toggleblocksparametersdialog.h"
 #include "paraboloidparametersdialog.h"
 #include "equilateraltriangleparametersdialog.h"
@@ -1389,12 +1390,20 @@ void MainTigerWindow::InitInterfacePolygonsActor(const std::shared_ptr<Interface
 
 void MainTigerWindow::InitInterfacePolygonsActor(
     const std::shared_ptr<InterfacePolygons> intfs,
-    const std::shared_ptr<EquilibriumAnalysis::Result> results, 
-    INTERFACES type)
+    const std::shared_ptr<EquilibriumAnalysis::Result> results,
+    INTERFACES type,
+    bool useForceCaps,
+    double minForceCap,
+    double maxForceCap)
 {
     assert(intfs);
     assert(results);
     assert(type != INTERFACES::PLAIN);
+
+    if (useForceCaps) 
+    {
+        assert(minForceCap <= maxForceCap);
+    }
 
     // Clear the interface polygons actor
     ClearInteracePolygonsActor();
@@ -1558,19 +1567,33 @@ void MainTigerWindow::InitInterfacePolygonsActor(
     polyData->GetPointData()->SetScalars(pointColors);
 
     // 
-    double min = 0, max = 0;
-    results->GetMinMaxForces((EquilibriumAnalysis::Force::TYPE)type, min, max);
-    
-    double step = (max - min) / 4.0;
-
-    // 
     vtkSmartPointer<vtkColorTransferFunction> colorFunction = vtkSmartPointer<vtkColorTransferFunction>::New();
-    colorFunction->AddRGBPoint(-1e-8, 0.5, 0.5, 0.5);
-    colorFunction->AddRGBPoint( min, 0.0, 0.0, 1.0);
-    colorFunction->AddRGBPoint( min + step, 0.0, 1.0, 1.0);
-    colorFunction->AddRGBPoint( (min + max) / 2.0, 0.0, 1.0, 0.0);
-    colorFunction->AddRGBPoint( max - step, 1.0, 1.0, 0.0);
-    colorFunction->AddRGBPoint( max, 1.0, 0.0, 0.0);
+
+    if (useForceCaps) 
+    {
+        colorFunction->AddRGBPoint(-1e-8, 0.5, 0.5, 0.5);
+        colorFunction->AddRGBPoint(minForceCap, 1.0, 1.0, 0.0); // yellow
+        //colorFunction->AddRGBPoint(min + step, 0.0, 1.0, 1.0);
+        //colorFunction->AddRGBPoint((min + max) / 2.0, 0.0, 1.0, 0.0);
+        //colorFunction->AddRGBPoint(max - step, 1.0, 1.0, 0.0);
+        colorFunction->AddRGBPoint(maxForceCap, 1.0, 0.0, 0.0); // red
+    }
+    else 
+    {
+        // 
+        double min = 0, max = 0;
+        results->GetMinMaxForces((EquilibriumAnalysis::Force::TYPE)type, min, max);
+
+        double step = (max - min) / 4.0;
+
+        colorFunction->AddRGBPoint(-1e-8, 0.5, 0.5, 0.5);
+        colorFunction->AddRGBPoint(min, 0.0, 0.0, 1.0);
+        colorFunction->AddRGBPoint(min + step, 0.0, 1.0, 1.0);
+        colorFunction->AddRGBPoint((min + max) / 2.0, 0.0, 1.0, 0.0);
+        colorFunction->AddRGBPoint(max - step, 1.0, 1.0, 0.0);
+        colorFunction->AddRGBPoint(max, 1.0, 0.0, 0.0);
+    }
+    
     colorFunction->Build();
 
     // 
@@ -3674,35 +3697,100 @@ void MainTigerWindow::on_actionViewAxes_triggered()
     qvtkWidget->renderWindow()->Render();
 }
 
+void MainTigerWindow::on_actionViewCapInterfaceForces_triggered()
+{
+    // Exit the function if there are no interface polygons in the workspace
+    if (!m_vtkInterfacePolygonsActor) 
+    {
+        QMessageBox::warning(this, APP_TITLE, "There are no interface polygons in the workspace.");
+
+        return;
+    }
+
+    // Exit the function if the interface polygons actor is not visible
+    if (!m_viewInterfacePolygons) 
+    {
+        QMessageBox::warning(this, APP_TITLE, "Interface polygons are not visible. Select an interface polygon visualization before capping forces.");
+
+        return;
+    }
+
+    // Exit the function if the current interface polygons type is plain (there
+    // are no forces to cap)
+    if (m_currentInterfacePolygonsType == INTERFACES::PLAIN) 
+    {
+        QMessageBox::warning(this, APP_TITLE, "There are no forces to cap for the plain interface polygons visualization.");
+
+        return;
+    }
+
+    // Initialize the dialog for the force caps parameters
+    ForceCapsParametersDialog dialog(this);
+
+    // Exit the function if the user canceled the dialog
+    if (dialog.exec() == QDialog::Rejected)
+    {
+        return;
+    }
+
+    // If using force caps, then init the interface polygons actor to display 
+    // the adjusted forces. Otherwise, init the interface polygons actor to 
+    // display the original forces
+    if (!dialog.GetNoCaps())
+    {
+        InitInterfacePolygonsActor(
+            m_workspace->GetInterfacePolygons(),
+            m_workspace->GetEquilibriumResults(),
+            m_currentInterfacePolygonsType,
+            true,
+            dialog.GetMinCap(),
+            dialog.GetMaxCap());
+    }
+    else 
+    {
+        InitInterfacePolygonsActor(
+            m_workspace->GetInterfacePolygons(),
+            m_workspace->GetEquilibriumResults(),
+            m_currentInterfacePolygonsType);
+    }
+
+    qvtkWidget->renderWindow()->Render();
+}
+
 void MainTigerWindow::on_actionViewCompressionForces_triggered()
 {
     m_viewInterfacePolygons = this->actionViewCompressionForces->isChecked();
 
+    // Uncheck the other interfaces view options
     this->actionViewPlainInterfaces->setChecked(false);
     this->actionViewTensionForces->setChecked(false);
     this->actionViewUTangentialForces->setChecked(false);
     this->actionViewVTangentialForces->setChecked(false);
 
-    if (m_vtkInterfacePolygonsActor)
+    // Exit the function if there is no interface polygons actor, which means
+    // there are no interface polygons in the workspace
+    if (!m_vtkInterfacePolygonsActor) 
     {
-        if (m_currentInterfacePolygonsType == INTERFACES::COMPRESSION)
-        {
-            m_vtkInterfacePolygonsActor->SetVisibility(m_viewInterfacePolygons);
-            m_vtkInterfacePolygonsBarActor->SetVisibility(m_viewInterfacePolygons);
-        }
-        else if(m_workspace->HasEquilibriumResults())
-        {
-            InitInterfacePolygonsActor(
-                m_workspace->GetInterfacePolygons(), 
-                m_workspace->GetEquilibriumResults(), 
-                INTERFACES::COMPRESSION);
-
-            m_vtkInterfacePolygonsActor->SetVisibility(m_viewInterfacePolygons);
-            m_vtkInterfacePolygonsBarActor->SetVisibility(m_viewInterfacePolygons);
-        }
-
-        qvtkWidget->renderWindow()->Render();
+        return;
     }
+
+    if (m_currentInterfacePolygonsType == INTERFACES::COMPRESSION)
+    {
+        m_vtkInterfacePolygonsActor->SetVisibility(m_viewInterfacePolygons);
+        m_vtkInterfacePolygonsBarActor->SetVisibility(m_viewInterfacePolygons);
+    }
+    else if (m_workspace->HasEquilibriumResults())
+    {
+        InitInterfacePolygonsActor(
+            m_workspace->GetInterfacePolygons(),
+            m_workspace->GetEquilibriumResults(),
+            INTERFACES::COMPRESSION);
+
+        m_vtkInterfacePolygonsActor->SetVisibility(m_viewInterfacePolygons);
+        m_vtkInterfacePolygonsBarActor->SetVisibility(m_viewInterfacePolygons);
+    }
+
+    qvtkWidget->renderWindow()->Render();
 }
 
 void MainTigerWindow::on_actionViewEdgeDirections_triggered()
