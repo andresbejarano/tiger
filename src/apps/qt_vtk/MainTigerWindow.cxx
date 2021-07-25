@@ -43,6 +43,7 @@
 #include "addblockweightloadsparametersdialog.h"
 #include "addblockloadparametersdialog.h"
 #include "adaptivetileoffsetclippingparametersdialog.h"
+#include "barrelvaultparametersdialog.h"
 #include "bendedsquareparametersdialog.h"
 #include "centerdirectionparametersdialog.h"
 #include "cyclideparametersdialog.h"
@@ -80,6 +81,7 @@
 
 // 
 const QString APP_TITLE = "TIGER";
+const QString APP_CONSTRUCTION = "Option under construction.";
 const QString NO_INTERFACES_VISIBLE_CONTENT = "The interface polygons not visible. Do you want to view it?";
 const QString NO_TESSELLATION_VISIBLE_CONTENT = "The tessellation is not visible. Do you want to view it?";
 
@@ -1571,12 +1573,14 @@ void MainTigerWindow::InitInterfacePolygonsActor(
 
     if (useForceCaps) 
     {
+        double step = (maxForceCap - minForceCap) / 4.0;
+
         colorFunction->AddRGBPoint(-1e-8, 0.5, 0.5, 0.5);
-        colorFunction->AddRGBPoint(minForceCap, 1.0, 1.0, 0.0); // yellow
-        //colorFunction->AddRGBPoint(min + step, 0.0, 1.0, 1.0);
-        //colorFunction->AddRGBPoint((min + max) / 2.0, 0.0, 1.0, 0.0);
-        //colorFunction->AddRGBPoint(max - step, 1.0, 1.0, 0.0);
-        colorFunction->AddRGBPoint(maxForceCap, 1.0, 0.0, 0.0); // red
+        colorFunction->AddRGBPoint(minForceCap, 0.0, 0.0, 1.0);
+        colorFunction->AddRGBPoint(minForceCap + step, 0.0, 1.0, 1.0);
+        colorFunction->AddRGBPoint((minForceCap + maxForceCap) / 2.0, 0.0, 1.0, 0.0);
+        colorFunction->AddRGBPoint(maxForceCap - step, 1.0, 1.0, 0.0);
+        colorFunction->AddRGBPoint(maxForceCap, 1.0, 0.0, 0.0);
     }
     else 
     {
@@ -1653,7 +1657,7 @@ void MainTigerWindow::SetInterfacePolygons(bool render)
     {
         QMessageBox::warning(
             this,
-            "No interface polygons",
+            APP_TITLE,
             "There are no interface polygons between the pieces");
     }
 }
@@ -1765,6 +1769,66 @@ void MainTigerWindow::ViewTessellationGeometry()
 
 void MainTigerWindow::on_actionNewArchimedeanSolidGeometry_triggered()
 {
+    QMessageBox::information(this, APP_TITLE, APP_CONSTRUCTION);
+}
+
+void MainTigerWindow::on_actionNewBarrelVaultGeometry_triggered() 
+{
+    // Open the dialog
+    BarrelVaultParametersDialog dialog(this);
+
+    // Exit the function if the user canceled the dialog
+    if (dialog.exec() == QDialog::Rejected) 
+    {
+        return;
+    }
+
+    // Clear the workspace
+    ClearWorkspace();
+
+    // Get the parameters from the dialog
+    double length = dialog.GetLength();
+    double radius = dialog.GetRadius();
+    size_t ls = dialog.GetLengthSegments();
+    size_t rs = dialog.GetRadialSegments();
+    QString axis = dialog.GetAxis();
+
+    Eigen::Vector3d X = Eigen::Vector3d::Zero(), Y = Eigen::Vector3d::Zero();
+
+    if (axis.compare("X") == 0) 
+    {
+        X << 1, 0, 0;
+        Y << 0, 1, 0;
+    }
+    else if (axis.compare("Y") == 0) 
+    {
+        X << 0, 1, 0;
+        Y << 0, 0, 1;
+    }
+    else 
+    {
+        X << 0, 0, 1;
+        Y << 1, 0, 0;
+    }
+
+    VF vf = geometries::BarrelVault(length, radius, ls, rs, Eigen::Vector3d::Zero(), X, Y);
+
+    // Initialize a new workspace and set its tessellation
+    m_workspace = std::make_shared<Workspace>();
+    m_workspace->SetTessellation(vf);
+
+    // Initialize the actors that renders the tessellation
+    InitTessellationActors(m_workspace->GetTessellation()->Geometry());
+
+    // If the tessellation geometry is not visible then ask whether or not to 
+    // show it
+    if (!m_viewTessellationGeometry)
+    {
+        AskViewTessellationGeometry();
+    }
+
+    // Call Render to show changes
+    qvtkWidget->renderWindow()->Render();
 }
 
 void MainTigerWindow::on_actionNewBendedSquareGeometry_triggered()
@@ -1814,7 +1878,7 @@ void MainTigerWindow::on_actionNewBendedSquareGeometry_triggered()
 
 void MainTigerWindow::on_actionNewConeGeometry_triggered()
 {
-    QMessageBox::information(this, APP_TITLE, "on_actionNewConeGeometry_triggered");
+    QMessageBox::information(this, APP_TITLE, APP_CONSTRUCTION);
 }
 
 void MainTigerWindow::on_actionNewCyclideGeometry_triggered()
@@ -2031,14 +2095,20 @@ void MainTigerWindow::on_actionNewObjFileGeometry_triggered()
     // Show any warning message
     if (!objWarning.empty()) 
     {
-        QMessageBox::warning(this, "Warning", QString::fromStdString(objWarning));
+        QMessageBox::warning(
+            this, 
+            APP_TITLE, 
+            QString::fromStdString(objWarning));
     }
 
     // Show any error message and exit the function (if something went wrong 
     // then let's be safe and do not generate any tessellation
     if (!objError.empty() || !ret) 
     {
-        QMessageBox::critical(this, "Error", QString::fromStdString(objError));
+        QMessageBox::critical(
+            this, 
+            APP_TITLE, 
+            QString::fromStdString(objError));
         return;
     }
 
@@ -2046,7 +2116,10 @@ void MainTigerWindow::on_actionNewObjFileGeometry_triggered()
     // this moment we only support single shaped tessellations
     if (objShapes.size() > 1) 
     {
-        QMessageBox::critical(this, "Error", "File contains more than one geometry.");
+        QMessageBox::critical(
+            this, 
+            APP_TITLE, 
+            "File contains more than one geometry.");
         return;
     }
 
@@ -2251,27 +2324,27 @@ void MainTigerWindow::on_actionNewRectangleGeometry_triggered()
 
 void MainTigerWindow::on_actionCameraBack_triggered() 
 {
-    QMessageBox::information(this, APP_TITLE, "on_actionCameraBack_triggered");
+    QMessageBox::information(this, APP_TITLE, APP_CONSTRUCTION);
 }
 
 void MainTigerWindow::on_actionCameraBottom_triggered()
 {
-    QMessageBox::information(this, APP_TITLE, "on_actionCameraBottom_triggered");
+    QMessageBox::information(this, APP_TITLE, APP_CONSTRUCTION);
 }
 
 void MainTigerWindow::on_actionCameraFront_triggered()
 {
-    QMessageBox::information(this, APP_TITLE, "on_actionCameraFront_triggered");
+    QMessageBox::information(this, APP_TITLE, APP_CONSTRUCTION);
 }
 
 void MainTigerWindow::on_actionCameraLeft_triggered()
 {
-    QMessageBox::information(this, APP_TITLE, "on_actionCameraLeft_triggered");
+    QMessageBox::information(this, APP_TITLE, APP_CONSTRUCTION);
 }
 
 void MainTigerWindow::on_actionCameraManual_triggered()
 {
-    QMessageBox::information(this, APP_TITLE, "on_actionCameraManual_triggered");
+    QMessageBox::information(this, APP_TITLE, APP_CONSTRUCTION);
 }
 
 void MainTigerWindow::on_actionCameraReset_triggered()
@@ -2286,12 +2359,12 @@ void MainTigerWindow::on_actionCameraReset_triggered()
 
 void MainTigerWindow::on_actionCameraRight_triggered()
 {
-    QMessageBox::information(this, APP_TITLE, "on_actionCameraRight_triggered");
+    QMessageBox::information(this, APP_TITLE, APP_CONSTRUCTION);
 }
 
 void MainTigerWindow::on_actionCameraTop_triggered()
 {
-    QMessageBox::information(this, APP_TITLE, "on_actionCameraTop_triggered");
+    QMessageBox::information(this, APP_TITLE, APP_CONSTRUCTION);
 }
 
 void MainTigerWindow::on_actionEditAssemblyClipAdaptiveTileOffset_triggered()
@@ -2363,7 +2436,7 @@ void MainTigerWindow::on_actionEditAssemblyClipTileOffset_triggered()
     // Validate the values Are correct
     if (intrados == 0.0 || extrados == 0.0)
     {
-        QMessageBox::warning(this, "Invalid Value", "Values cannot be zero.");
+        QMessageBox::warning(this, APP_TITLE, "Values cannot be zero.");
         return;
     }
 
@@ -2515,7 +2588,7 @@ void MainTigerWindow::on_actionEditDualTessellation_triggered()
     // function
     if (dual.countVertices() == 0 || dual.countFaces() == 0)
     {
-        QMessageBox::warning(this, "Calculation Incompleted", "tessellation has no dual.");
+        QMessageBox::warning(this, APP_TITLE, "tessellation has no dual.");
         return;
     }
 
@@ -2580,7 +2653,7 @@ void MainTigerWindow::on_actionEditNormalizeVertices_triggered()
 
 void MainTigerWindow::on_actionEditRestoreAssembly_triggered()
 {
-    QMessageBox::information(this, APP_TITLE, "on_actionEditRestoreAssembly_triggered");
+    QMessageBox::information(this, APP_TITLE, APP_CONSTRUCTION);
 }
 
 void MainTigerWindow::on_actionEditRotateTessellation_triggered()
@@ -2857,12 +2930,12 @@ void MainTigerWindow::on_actionNewTruncatedConeGeometry_triggered()
 
 void MainTigerWindow::on_actionNewWorkspace_triggered()
 {
-    QMessageBox::information(this, APP_TITLE, "on_actionNewWorkspace_triggered");
+    QMessageBox::information(this, APP_TITLE, APP_CONSTRUCTION);
 }
 
 void MainTigerWindow::on_actionSaveAbaqusFile_triggered()
 {
-    QMessageBox::information(this, APP_TITLE, "on_actionSaveAbaqusFile_triggered");
+    QMessageBox::information(this, APP_TITLE, APP_CONSTRUCTION);
 }
 
 void MainTigerWindow::on_actionSaveGeogebraJsTessellationFile_triggered()
@@ -2870,13 +2943,19 @@ void MainTigerWindow::on_actionSaveGeogebraJsTessellationFile_triggered()
     // Exit the function if there is no tessellation
     if (!m_workspace->GetTessellation()) 
     {
-        QMessageBox::critical(this, APP_TITLE, "There is no tessellation in the workspace.");
+        QMessageBox::critical(
+            this, 
+            APP_TITLE, 
+            "There is no tessellation in the workspace.");
         return;
     }
 
     // Get the name of the file
     QString filename = QFileDialog::getSaveFileName(
-        this, tr("Save JavaScript File"), "Tessellation.js", tr("JavaScript (*.js)"));
+        this, 
+        tr("Save JavaScript File"), 
+        "Tessellation.js", 
+        tr("JavaScript (*.js)"));
 
     // Exit the function if there is no file name
     if (filename.trimmed() == "") 
@@ -2889,7 +2968,10 @@ void MainTigerWindow::on_actionSaveGeogebraJsTessellationFile_triggered()
     m_workspace->WriteTessellationGeogebraJsFile(filename.toStdString());
 
     // Indicate the file was generated successfully
-    QMessageBox::information(this, APP_TITLE, filename.trimmed() + " saved successfully.");
+    QMessageBox::information(
+        this, 
+        APP_TITLE, 
+        filename.trimmed() + " saved successfully.");
 }
 
 void MainTigerWindow::on_actionSaveObjAllAssemblyFile_triggered()
@@ -2897,13 +2979,20 @@ void MainTigerWindow::on_actionSaveObjAllAssemblyFile_triggered()
     // Exit the function if there is no assembly
     if (!m_workspace->GetAssembly()) 
     {
-        QMessageBox::critical(this, APP_TITLE, "There is no assembly in the workspace.");
+        QMessageBox::critical(
+            this, 
+            APP_TITLE, 
+            "There is no assembly in the workspace.");
+
         return;
     }
 
     // Get the selected filename and trim it
     QString filename = QFileDialog::getSaveFileName(
-        this, tr("Save OBJ File"), "assembly.obj", tr("WaveFront (*.obj)")).trimmed();
+        this, 
+        tr("Save OBJ File"), 
+        "assembly.obj", 
+        tr("WaveFront (*.obj)")).trimmed();
 
     // Exit the function if there is no file name
     if (filename == "") 
@@ -2915,12 +3004,15 @@ void MainTigerWindow::on_actionSaveObjAllAssemblyFile_triggered()
     m_workspace->GetAssembly()->WriteObjFile(filename.toStdString());
 
     // Indicate the file was generated successfully
-    QMessageBox::information(this, APP_TITLE, filename + " saved successfully.");
+    QMessageBox::information(
+        this, 
+        APP_TITLE, 
+        filename + " saved successfully.");
 }
 
 void MainTigerWindow::on_actionSaveObjAllInterfacePolygonsFile_triggered()
 {
-    QMessageBox::information(this, APP_TITLE, "on_actionSaveObjAllInterfacePolygonsFile_triggered");
+    QMessageBox::information(this, APP_TITLE, APP_CONSTRUCTION);
 }
 
 void MainTigerWindow::on_actionSaveObjAssemblyFilePerBlock_triggered()
@@ -2928,7 +3020,11 @@ void MainTigerWindow::on_actionSaveObjAssemblyFilePerBlock_triggered()
     // Exit the function if there is no assembly
     if (!m_workspace->GetAssembly())
     {
-        QMessageBox::critical(this, APP_TITLE, "There is no assembly in the workspace.");
+        QMessageBox::critical(
+            this, 
+            APP_TITLE, 
+            "There is no assembly in the workspace.");
+
         return;
     }
 
@@ -2953,7 +3049,10 @@ void MainTigerWindow::on_actionSaveObjAssemblyFilePerBlock_triggered()
         block->Geometry().WriteObjFile(filepath);
     }
 
-    QMessageBox::information(this, APP_TITLE, "Files saved in " + filedir + " successfully.");
+    QMessageBox::information(
+        this, 
+        APP_TITLE, 
+        "Files saved in " + filedir + " successfully.");
 }
 
 void MainTigerWindow::on_actionSaveObjTessellationFile_triggered()
@@ -2961,13 +3060,19 @@ void MainTigerWindow::on_actionSaveObjTessellationFile_triggered()
     // Exit the function if there is no tessellation
     if (!m_workspace->GetTessellation())
     {
-        QMessageBox::critical(this, APP_TITLE, "There is no tessellation in the workspace.");
+        QMessageBox::critical(
+            this, 
+            APP_TITLE, 
+            "There is no tessellation in the workspace.");
         return;
     }
 
     // Get the name of the file, then trim it
     QString filename = QFileDialog::getSaveFileName(
-        this, tr("Save OBJ File"), "Tessellation.obj", tr("WaveFront (*.obj)")).trimmed();
+        this, 
+        tr("Save OBJ File"), 
+        "Tessellation.obj", 
+        tr("WaveFront (*.obj)")).trimmed();
 
     // Exit the function if there is no file name
     if (filename == "")
@@ -2979,14 +3084,20 @@ void MainTigerWindow::on_actionSaveObjTessellationFile_triggered()
     m_workspace->WriteTessellationObjFile(filename.toStdString());
 
     // Indicate the file was generated successfully
-    QMessageBox::information(this, APP_TITLE, filename + " saved successfully.");
+    QMessageBox::information(
+        this, 
+        APP_TITLE, 
+        filename + " saved successfully.");
 }
 
 void MainTigerWindow::on_actionSaveObjWorkspaceFile_triggered()
 {
     // Get the selected filename and trim it
     QString filename = QFileDialog::getSaveFileName(
-        this, tr("Save OBJ File"), "workspace.obj", tr("WaveFront (*.obj)")).trimmed();
+        this, 
+        tr("Save OBJ File"), 
+        "workspace.obj", 
+        tr("WaveFront (*.obj)")).trimmed();
 
     // Exit the function if there is no file name
     if (filename == "")
@@ -3060,29 +3171,32 @@ void MainTigerWindow::on_actionTicCalculateInterfaces_triggered()
 
 void MainTigerWindow::on_actionSaveVrmlAssemblyFile_triggered()
 {
-    QMessageBox::information(this, APP_TITLE, "on_actionSaveVrmlAssemblyFile_triggered");
+    QMessageBox::information(this, APP_TITLE, APP_CONSTRUCTION);
 }
 
 void MainTigerWindow::on_actionSaveVrmlAssemblyFilePerBlock_triggered()
 {
-    QMessageBox::information(this, APP_TITLE, "on_actionSaveVrmlAssemblyFilePerBlock_triggered");
+    QMessageBox::information(this, APP_TITLE, APP_CONSTRUCTION);
 }
 
 void MainTigerWindow::on_actionSaveVrmlInterfacePolygonsFile_triggered()
 {
-    QMessageBox::information(this, APP_TITLE, "on_actionSaveVrmlInterfacePolygonsFile_triggered");
+    QMessageBox::information(this, APP_TITLE, APP_CONSTRUCTION);
 }
 
 void MainTigerWindow::on_actionSaveVrmlTessellationFile_triggered()
 {
-    QMessageBox::information(this, APP_TITLE, "on_actionSaveVrmlTessellationFile_triggered");
+    QMessageBox::information(this, APP_TITLE, APP_CONSTRUCTION);
 }
 
 void MainTigerWindow::on_actionSaveVrmlWorkspaceFile_triggered()
 {
     // Get the selected filename and trim it
     QString filename = QFileDialog::getSaveFileName(
-        this, tr("Save VRML File"), "workspace.wrl", tr("VRML Format (*.wrl)")).trimmed();
+        this, 
+        tr("Save VRML File"), 
+        "workspace.wrl", 
+        tr("VRML Format (*.wrl)")).trimmed();
 
     // Exit the function if there is no file name
     if (filename == "")
@@ -3097,7 +3211,10 @@ void MainTigerWindow::on_actionSaveVrmlWorkspaceFile_triggered()
     exporter->SetFileName(filename.toStdString().c_str());
     exporter->Write();
 
-    QMessageBox::information(this, APP_TITLE, filename + " saved successfully.");
+    QMessageBox::information(
+        this, 
+        APP_TITLE, 
+        filename + " saved successfully.");
 }
 
 void MainTigerWindow::on_actionTicAddBlockForceTorqueLoads_triggered()
@@ -3211,7 +3328,7 @@ void MainTigerWindow::on_actionTicAddBlockWeightLoads_triggered()
 
 void MainTigerWindow::on_actionTicCalculateOverlapping_triggered()
 {
-    QMessageBox::information(this, APP_TITLE, "on_actionTicCalculateOverlapping_triggered");
+    QMessageBox::information(this, APP_TITLE, APP_CONSTRUCTION);
 }
 
 void MainTigerWindow::on_actionTicEnableDisableSpecificBlocks_triggered()
@@ -3223,6 +3340,7 @@ void MainTigerWindow::on_actionTicEnableDisableSpecificBlocks_triggered()
     if (!m_workspace->CheckFixBottomBlocksRequirements(msg))
     {
         QMessageBox::warning(this, APP_TITLE, msg.getText());
+
         return;
     }
 
@@ -3313,6 +3431,7 @@ void MainTigerWindow::on_actionTicHeightBisectionMethod_triggered()
     if (!m_workspace->CheckHeightBisectionRequirements(msg))
     {
         QMessageBox::warning(this, APP_TITLE, msg.getText());
+
         return;
     }
 
@@ -3354,6 +3473,7 @@ void MainTigerWindow::on_actionTicResetBlockLoads_triggered()
     if (!m_workspace->CheckAssemblyCodeRequirements(msg))
     {
         QMessageBox::warning(this, APP_TITLE, msg.getText());
+
         return;
     }
 
@@ -3425,6 +3545,7 @@ void MainTigerWindow::on_actionTicSetCentersAndDirections_triggered()
     if (!m_workspace->CheckSetFaceCentersRequirements(msg))
     {
         QMessageBox::warning(this, APP_TITLE, msg.getText());
+
         return;
     }
 
@@ -3432,6 +3553,7 @@ void MainTigerWindow::on_actionTicSetCentersAndDirections_triggered()
     if (!m_workspace->CheckSetEdgeDirectionsRequirements(msg))
     {
         QMessageBox::warning(this, APP_TITLE, msg.getText());
+
         return;
     }
 
@@ -3470,6 +3592,7 @@ void MainTigerWindow::on_actionTicStaticEquilibriumAnalysis_triggered()
     if (!m_workspace->CheckEquilibriumAnalysisRequirements(msg))
     {
         QMessageBox::warning(this, APP_TITLE, msg.getText());
+
         return;
     }
 
@@ -3601,7 +3724,7 @@ void MainTigerWindow::on_actionTicStaticEquilibriumAnalysis_triggered()
     }
     else
     {
-        QMessageBox::critical(this, "Unfeasible System", "System has no solution.");
+        QMessageBox::critical(this, APP_TITLE, "System has no solution.");
     }
 }
 
@@ -3615,6 +3738,7 @@ void MainTigerWindow::on_actionTicTiltingAngleMethod_triggered()
     if (!m_workspace->CheckTiltingAngleRequirements(msg))
     {
         QMessageBox::warning(this, APP_TITLE, msg.getText());
+
         return;
     }
 
@@ -3669,7 +3793,7 @@ void MainTigerWindow::on_actionViewAssemblyBlockIndices_triggered()
 
 void MainTigerWindow::on_actionViewAssemblyBoundingBoxes_triggered()
 {
-    QMessageBox::information(this, APP_TITLE, "on_actionViewAssemblyBoundingBoxes_triggered");
+    QMessageBox::information(this, APP_TITLE, APP_CONSTRUCTION);
 }
 
 void MainTigerWindow::on_actionViewAssemblyGeometry_triggered()
@@ -3702,7 +3826,10 @@ void MainTigerWindow::on_actionViewCapInterfaceForces_triggered()
     // Exit the function if there are no interface polygons in the workspace
     if (!m_vtkInterfacePolygonsActor) 
     {
-        QMessageBox::warning(this, APP_TITLE, "There are no interface polygons in the workspace.");
+        QMessageBox::warning(
+            this, 
+            APP_TITLE, 
+            "There are no interface polygons in the workspace.");
 
         return;
     }
@@ -3710,7 +3837,10 @@ void MainTigerWindow::on_actionViewCapInterfaceForces_triggered()
     // Exit the function if the interface polygons actor is not visible
     if (!m_viewInterfacePolygons) 
     {
-        QMessageBox::warning(this, APP_TITLE, "Interface polygons are not visible. Select an interface polygon visualization before capping forces.");
+        QMessageBox::warning(
+            this, 
+            APP_TITLE, 
+            "Interface polygons are not visible. Select an interface polygon visualization before capping forces.");
 
         return;
     }
@@ -3719,7 +3849,10 @@ void MainTigerWindow::on_actionViewCapInterfaceForces_triggered()
     // are no forces to cap)
     if (m_currentInterfacePolygonsType == INTERFACES::PLAIN) 
     {
-        QMessageBox::warning(this, APP_TITLE, "There are no forces to cap for the plain interface polygons visualization.");
+        QMessageBox::warning(
+            this, 
+            APP_TITLE, 
+            "There are no forces to cap for the plain interface polygons visualization.");
 
         return;
     }

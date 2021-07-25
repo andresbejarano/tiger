@@ -28,6 +28,27 @@ namespace geometries
     //     const Eigen::Vector3d & U = Eigen::Vector3d(1, 0, 0), 
     //     const Eigen::Vector3d & V = Eigen::Vector3d(0, 1, 0));//
 
+
+    // 
+    // 
+    // @param double length
+    // @param double radius
+    // @param size_t ls
+    // @param size_t rs
+    // @param const Eigen::Vector3d& C
+    // @param const Eigen::Vector3d& X
+    // @param const Eigen::Vector3d& Y
+    // @return VF
+    // 
+    VF BarrelVault(
+        double length,
+        double radius,
+        size_t ls,
+        size_t rs,
+        const Eigen::Vector3d& C = Eigen::Vector3d::Zero(),
+        const Eigen::Vector3d& X = Eigen::Vector3d(1, 0, 0),
+        const Eigen::Vector3d& Y = Eigen::Vector3d(0, 1, 0));
+
     //
     // Get the vertices and faces of a bended square (centered at the origin) along
     // the Z axis.

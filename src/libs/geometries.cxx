@@ -41,6 +41,74 @@
     return vf;
 }*/
 
+VF geometries::BarrelVault(
+    double length,
+    double radius,
+    size_t ls,
+    size_t rs,
+    const Eigen::Vector3d& C,
+    const Eigen::Vector3d& X,
+    const Eigen::Vector3d& Y) 
+{
+    // Initialize the vertex coordinates and vertex indices structure
+    VF vf((ls + 1) * (rs + 1), ls * rs);
+
+    // Normalize the X and Y vectors. Then, calculate the Z vector
+    const Eigen::Vector3d nX = X.normalized();
+    const Eigen::Vector3d nY = Y.normalized();
+    const Eigen::Vector3d nZ = nX.cross(nY);
+
+    // Initialize a vector for representing the position of the vertices
+    Eigen::Vector3d V = Eigen::Vector3d::Zero();
+
+    double halfLength = length / 2.0;
+    double lengthStep = length / (double)ls;
+    double angle = 0;
+    double angleStep = utils::PI / (double)rs;
+    double x = halfLength;
+
+    // Define the vertices
+    for (size_t i = 0; i <= ls; i += 1) 
+    {
+        // Initialize the angle value for the current set of vertices
+        angle = utils::PI;
+
+        for (size_t j = 0; j <= rs; j += 1) 
+        {
+            // Calculate the position vector for the current vertex. Then, 
+            // rotate it
+            V = C + (x * nX) - (radius * nZ);
+            V = utils::axisAngleRotation(V, nX, angle);
+
+            vf.addVertex(V);
+
+            angle -= angleStep;
+        }
+
+        x -= lengthStep;
+    }
+
+    size_t v0, v1, v2, v3;
+
+    // Define the vertex indices for the faces
+    for (size_t i = 0; i < ls; i += 1)
+    {
+        for (size_t j = 0; j < rs; j += 1)
+        {
+            // Calculate the vertex indices that define the current face
+            v0 = (i * (rs + 1)) + j;
+            v1 = v0 + 1;
+            v2 = ((i + 1) * (rs + 1)) + j + 1;
+            v3 = v2 - 1;
+
+            vf.addFace(v0, v1, v2, v3);
+        }
+    }
+
+    // Return the object with the vertices and faces
+    return vf;
+}
+
 VF geometries::BendedSquare(double radius, double length, size_t rs, size_t ls, int bending)
 {
     // Initialize the vertex coordinates and vertex indices structure

@@ -23,7 +23,14 @@ class MainTigerWindow : public QMainWindow, private Ui::MainTigerWindow
 private:
 
     // The different content types for the interface polygons actor
-    enum class INTERFACES { PLAIN, COMPRESSION, TENSION, UTANGENTIAL, VTANGENTIAL };
+    enum class INTERFACES 
+    { 
+        PLAIN, 
+        COMPRESSION, 
+        TENSION, 
+        UTANGENTIAL, 
+        VTANGENTIAL 
+    };
 
     // The type of current interface polygon
     INTERFACES m_currentInterfacePolygonsType;
@@ -247,7 +254,7 @@ private:
 
 	//
 	// Initializes the actor to render the axes vectors. Reference axes point 
-    // along X, Y and Z directions. NOTE: Call this function only after adding 
+    // along X, Y and Z directions. NOTE: Call this function only after adding
     // the renderer to the VTK render window of the Qt VTK widget.
 	//
 	void InitAxesActor();
@@ -269,10 +276,13 @@ private:
     // tessellation. The tiles must have the ATTRIB_CENTER dynamic attribute.
     // @param double radius The radius of the octahedra.
     //
-    void InitTileCentersActor(const std::shared_ptr<dcel::DCEL> dcel, double radius = 0.1);
+    void InitTileCentersActor(
+        const std::shared_ptr<dcel::DCEL> dcel, 
+        double radius = 0.1);
 
     //
-    // Initializes the actor to render the edge directions in the tessellation. 
+    // Initializes the actor to render the edge directions in the 
+    // tessellation. 
     // NOTE: Call this function only after adding the renderer to the VTK 
     // render window of the Qt VTK widget.
 	// @param const dcel::DCEL & domain The reference to the geometry of the 
@@ -280,11 +290,13 @@ private:
     // @param double length The length of the lines representing the edge 
     // directions.
     //
-    void InitEdgeDirectionsActor(const std::shared_ptr<dcel::DCEL> dcel, double length = 0.5);
+    void InitEdgeDirectionsActor(
+        const std::shared_ptr<dcel::DCEL> dcel, 
+        double length = 0.5);
 
 	//
 	// Initializes the actor to render the tessellation. NOTE: Call this 
-    // function only after adding the renderer to the VTK render window of the 
+    // function only after adding the renderer to the VTK render window of the
     // Qt VTK widget.
 	// @param const dcel::DCEL & domain The reference to the geometry of the 
     // tessellation.
@@ -300,7 +312,7 @@ private:
     void InitTessellationActors(const VF & vf);
 
 	//
-	// Initializes the actor to render the reference grid. Reference grid lies 
+	// Initializes the actor to render the reference grid. Reference grid lies
     // on the XY plane. 
 	// NOTE: Call this function only after adding the renderer to the VTK 
     // render window of the Qt VTK widget.
@@ -316,13 +328,14 @@ private:
 		size_t heightSegments = 20);
 
     //
-    // Initializes the actor to render the interface polygons. NOTE: Call this 
-    // function only after adding the renderer to the VTK render window of the 
+    // Initializes the actor to render the interface polygons. NOTE: Call this
+    // function only after adding the renderer to the VTK render window of the
     // Qt VTK widget.
-    // @param const std::shared_ptr<InterfacePolygons> intfs The pointer to the
-    // interface polygons.
+    // @param const std::shared_ptr<InterfacePolygons> intfs The pointer to 
+    // the interface polygons.
     //
-    void InitInterfacePolygonsActor(const std::shared_ptr<InterfacePolygons> intfs);
+    void InitInterfacePolygonsActor(
+        const std::shared_ptr<InterfacePolygons> intfs);
 
     //
     // @param const std::shared_ptr<InterfacePolygons> intfs
@@ -342,9 +355,9 @@ private:
     void SetInterfacePolygons(bool render = false);
 
     //
-    // Adds the interface polygons actor (if any) to the renderer and indicates
-    // the interfaces are being shown. This function does not call the render 
-    // function.
+    // Adds the interface polygons actor (if any) to the renderer and 
+    // indicates the interfaces are being shown. This function does not call 
+    // the render function.
     // @param INTERFACES type
     //
     void ViewInterfacePolygons(INTERFACES type);
@@ -450,9 +463,15 @@ public slots:
     //
     void on_actionNewArchimedeanSolidGeometry_triggered();
 
-    //
-    // Slot function called when the user clicks the new bended square geometry
+    // 
+    // Slot function called when the user clicks the new barrel vault geometry
     // menu item.
+    // 
+    void on_actionNewBarrelVaultGeometry_triggered();
+
+    //
+    // Slot function called when the user clicks the new bended square 
+    // geometry menu item.
     //
     void on_actionNewBendedSquareGeometry_triggered();
 
@@ -466,13 +485,13 @@ public slots:
     void on_actionNewCyclideGeometry_triggered();
 
     //
-    // Slot function called when the user clicks the new cylinder geometry menu
-    // item.
+    // Slot function called when the user clicks the new cylinder geometry 
+    // menu item.
     //
     void on_actionNewCylinderGeometry_triggered();
 
     //
-    // Slot function called when the user clicks the new equiliateral triangle 
+    // Slot function called when the user clicks the new equiliateral triangle
     // geometry menu item.
     //
     void on_actionNewEquilateralTriangleGeometry_triggered();
@@ -484,8 +503,8 @@ public slots:
     void on_actionNewNsidedRegularPolygonGeometry_triggered();
 
     //
-    // Slot function executed when the user clicks the new tessellation from an
-    // OBJ file menu item.
+    // Slot function executed when the user clicks the new tessellation from 
+    // an OBJ file menu item.
     //
     void on_actionNewObjFileGeometry_triggered();
 
@@ -626,8 +645,8 @@ public slots:
     void on_actionTicHeightBisectionMethod_triggered();
 
     // 
-    // Slot function called when the user clicks the TIC reset block loads menu
-    // item.
+    // Slot function called when the user clicks the TIC reset block loads 
+    // menu item.
     // 
     void on_actionTicResetBlockLoads_triggered();
 
@@ -681,8 +700,8 @@ public slots:
     void on_actionViewCompressionForces_triggered();
 
 	//
-	// Slot function called when the user toggles the visualization of the edge
-    // directions.
+	// Slot function called when the user toggles the visualization of the 
+    // edge directions.
 	//
 	void on_actionViewEdgeDirections_triggered();
 
@@ -716,8 +735,8 @@ public slots:
 	void on_actionViewTessellationGeometry_triggered();
 
     //
-    // Slot function called when the user toggles the visualization of the face
-    // centers.
+    // Slot function called when the user toggles the visualization of the 
+    // face centers.
     //
     void on_actionViewTileCenters_triggered();
 
@@ -743,8 +762,8 @@ public slots:
      //
      // Checks the directory for storing the information of the workspaces 
      // exists.
-     // @param bool mkdir Indicates whether to make the directory if it doesn't
-     // exist.
+     // @param bool mkdir Indicates whether to make the directory if it 
+     // doesn't exist.
      // @return bool Indicates whether the workspaces directory exists or not.
      //
      bool ValidateWorkspacesDirectory(bool mkdir = false) const;

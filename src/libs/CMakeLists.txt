@@ -30,6 +30,6 @@ target_compile_definitions(TIGER_WORKSPACE_LIB PUBLIC)
 # and have a default simulated anealing solution in case gurobi is not available
 add_library(TIGER_ANALYSIS_LIB STATIC equilibriumanalysis.cxx)
 target_include_directories(TIGER_ANALYSIS_LIB PUBLIC "$ENV{GUROBI_HOME}/include")
-set(GUROBI_LIBRARIES "$ENV{GUROBI_HOME}/lib/gurobi_c++mdd2017.lib" "$ENV{GUROBI_HOME}/lib/gurobi81.lib")
+set(GUROBI_LIBRARIES "$ENV{GUROBI_HOME}/lib/gurobi_c++mdd2019.lib" "$ENV{GUROBI_HOME}/lib/gurobi91.lib")
 target_link_libraries(TIGER_ANALYSIS_LIB ${GUROBI_LIBRARIES})
 target_compile_definitions(TIGER_ANALYSIS_LIB PUBLIC)

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>AddBlockWeightLoadsParametersDialog</class>
- <widget class="QDialog" name="AddBlockWeightLoadsParametersDialog">
+ <class>BarrelVaultParametersDialog</class>
+ <widget class="QDialog" name="BarrelVaultParametersDialog">
   <property name="windowModality">
    <enum>Qt::ApplicationModal</enum>
   </property>
@@ -10,17 +10,17 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>143</height>
+    <height>185</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
     <width>400</width>
-    <height>143</height>
+    <height>185</height>
    </size>
   </property>
   <property name="windowTitle">
-   <string>Add Block Weights Parameters</string>
+   <string>Barrel Vault Parameters</string>
   </property>
   <property name="modal">
    <bool>true</bool>
@@ -29,36 +29,45 @@
    <item row="0" column="0">
     <layout class="QFormLayout" name="formLayout">
      <item row="0" column="0">
-      <widget class="QLabel" name="blockIndicesLabel">
+      <widget class="QLabel" name="lengthLabel">
        <property name="text">
-        <string>Block Indices</string>
+        <string>Length</string>
        </property>
       </widget>
      </item>
      <item row="0" column="1">
-      <widget class="QLineEdit" name="blockIndicesLineEdit">
-       <property name="text">
-        <string>all</string>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="0">
-      <widget class="QLabel" name="blockDensityLabel">
-       <property name="text">
-        <string>Block Density</string>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="1">
-      <widget class="QDoubleSpinBox" name="blockDensityDoubleSpinBox">
+      <widget class="QDoubleSpinBox" name="lengthDoubleSpinBox">
        <property name="decimals">
         <number>5</number>
        </property>
        <property name="maximum">
-        <double>99999.990000000005239</double>
+        <double>99999.999989999996615</double>
        </property>
        <property name="singleStep">
-        <double>0.001000000000000</double>
+        <double>0.010000000000000</double>
+       </property>
+       <property name="value">
+        <double>1.000000000000000</double>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="radiusLabel">
+       <property name="text">
+        <string>Radius</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QDoubleSpinBox" name="radiusDoubleSpinBox">
+       <property name="decimals">
+        <number>5</number>
+       </property>
+       <property name="maximum">
+        <double>99999.999989999996615</double>
+       </property>
+       <property name="singleStep">
+        <double>0.010000000000000</double>
        </property>
        <property name="value">
         <double>1.000000000000000</double>
@@ -66,22 +75,61 @@
       </widget>
      </item>
      <item row="2" column="0">
-      <widget class="QLabel" name="blockUnitLabel">
+      <widget class="QLabel" name="lengthSegmentsLabel">
        <property name="text">
-        <string>Block Unit</string>
+        <string>Length Segments</string>
        </property>
       </widget>
      </item>
      <item row="2" column="1">
-      <widget class="QComboBox" name="blockUnitComboBox">
+      <widget class="QSpinBox" name="lengthSegmentsSpinBox">
+       <property name="minimum">
+        <number>1</number>
+       </property>
+       <property name="maximum">
+        <number>999</number>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="radialSegmentsLabel">
+       <property name="text">
+        <string>Radial Segments</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QSpinBox" name="radialSegmentsSpinBox">
+       <property name="minimum">
+        <number>1</number>
+       </property>
+       <property name="maximum">
+        <number>999</number>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="0">
+      <widget class="QLabel" name="axisLabel">
+       <property name="text">
+        <string>Axis</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="1">
+      <widget class="QComboBox" name="axisComboBox">
        <item>
         <property name="text">
-         <string>m</string>
+         <string>X</string>
         </property>
        </item>
        <item>
         <property name="text">
-         <string>cm</string>
+         <string>Y</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Z</string>
         </property>
        </item>
       </widget>
@@ -105,7 +153,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
-   <receiver>AddBlockWeightLoadsParametersDialog</receiver>
+   <receiver>BarrelVaultParametersDialog</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -121,7 +169,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
-   <receiver>AddBlockWeightLoadsParametersDialog</receiver>
+   <receiver>BarrelVaultParametersDialog</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
