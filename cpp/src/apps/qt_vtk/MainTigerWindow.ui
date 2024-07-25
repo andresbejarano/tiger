@@ -1,0 +1,750 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainTigerWindow</class>
+ <widget class="QMainWindow" name="MainTigerWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1024</width>
+    <height>768</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>1024</width>
+    <height>768</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>TIGER - Topological Interlocking GEneratoR</string>
+  </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>:/Icons/help.png</normaloff>:/Icons/help.png</iconset>
+  </property>
+  <property name="iconSize">
+   <size>
+    <width>22</width>
+    <height>22</height>
+   </size>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="0" column="0">
+     <widget class="QVTKOpenGLNativeWidget" name="qvtkWidget" native="true"/>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1024</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <widget class="QMenu" name="menuNew">
+     <property name="title">
+      <string>New</string>
+     </property>
+     <widget class="QMenu" name="menuNewTessellation">
+      <property name="title">
+       <string>Tessellation</string>
+      </property>
+      <widget class="QMenu" name="menuNewParametricSurface">
+       <property name="title">
+        <string>Parametric Surface</string>
+       </property>
+       <addaction name="actionNewBarrelVaultGeometry"/>
+       <addaction name="actionNewBendedSquareGeometry"/>
+       <addaction name="actionNewConeGeometry"/>
+       <addaction name="actionNewCylinderGeometry"/>
+       <addaction name="actionNewParaboloidGeometry"/>
+       <addaction name="actionNewSquareGridGeometry"/>
+       <addaction name="actionNewTorusGeometry"/>
+       <addaction name="actionNewTruncatedConeGeometry"/>
+       <addaction name="actionNewCyclideGeometry"/>
+      </widget>
+      <widget class="QMenu" name="menuNewPolygon">
+       <property name="title">
+        <string>Polygon</string>
+       </property>
+       <addaction name="actionNewEquilateralTriangleGeometry"/>
+       <addaction name="actionNewNsidedRegularPolygonGeometry"/>
+       <addaction name="actionNewRectangleGeometry"/>
+       <addaction name="actionNewSquareGeometry"/>
+      </widget>
+      <widget class="QMenu" name="menuNewSolid">
+       <property name="title">
+        <string>Solid</string>
+       </property>
+       <addaction name="actionNewPlatonicSolidGeometry"/>
+       <addaction name="actionNewArchimedeanSolidGeometry"/>
+      </widget>
+      <addaction name="menuNewParametricSurface"/>
+      <addaction name="menuNewPolygon"/>
+      <addaction name="menuNewSolid"/>
+      <addaction name="separator"/>
+      <addaction name="actionNewObjFileGeometry"/>
+     </widget>
+     <addaction name="actionNewWorkspace"/>
+     <addaction name="menuNewTessellation"/>
+    </widget>
+    <widget class="QMenu" name="menuSaveGeogebraJsFile">
+     <property name="title">
+      <string>Save Geogebra JS File</string>
+     </property>
+     <addaction name="actionSaveGeogebraJsTessellationFile"/>
+     <addaction name="actionSaveGeogebraJsAllAssemblyFile"/>
+     <addaction name="actionSaveGeogebraJsAssemblyFilePerBlock"/>
+     <addaction name="actionSaveGeogebraJsAllInterfacePolygonsFile"/>
+     <addaction name="separator"/>
+     <addaction name="actionSaveGeogebraJsAllFile"/>
+    </widget>
+    <widget class="QMenu" name="menuSaveOBJFile">
+     <property name="title">
+      <string>Save OBJ File</string>
+     </property>
+     <addaction name="actionSaveObjTessellationFile"/>
+     <addaction name="actionSaveObjAllAssemblyFile"/>
+     <addaction name="actionSaveObjAssemblyFilePerBlock"/>
+     <addaction name="actionSaveObjAllInterfacePolygonsFile"/>
+     <addaction name="actionSaveObjWorkspaceFile"/>
+    </widget>
+    <widget class="QMenu" name="menuSaveVRMLFile">
+     <property name="title">
+      <string>Save VRML File</string>
+     </property>
+     <addaction name="actionSaveVrmlTessellationFile"/>
+     <addaction name="actionSaveVrmlAssemblyFile"/>
+     <addaction name="actionSaveVrmlAssemblyFilePerBlock"/>
+     <addaction name="actionSaveVrmlInterfacePolygonsFile"/>
+     <addaction name="actionSaveVrmlWorkspaceFile"/>
+    </widget>
+    <addaction name="menuNew"/>
+    <addaction name="separator"/>
+    <addaction name="actionSaveAbaqusFile"/>
+    <addaction name="menuSaveGeogebraJsFile"/>
+    <addaction name="menuSaveOBJFile"/>
+    <addaction name="menuSaveVRMLFile"/>
+    <addaction name="separator"/>
+    <addaction name="actionClose"/>
+   </widget>
+   <widget class="QMenu" name="menuEdit">
+    <property name="title">
+     <string>Edit</string>
+    </property>
+    <widget class="QMenu" name="menuEditTessellation">
+     <property name="title">
+      <string>Tessellation</string>
+     </property>
+     <addaction name="actionEditTessellationCentroidToOrigin"/>
+     <addaction name="actionEditDualTessellation"/>
+     <addaction name="actionEditTileSubdivision"/>
+     <addaction name="actionEditFlipTessellation"/>
+     <addaction name="actionEditNormalizeVertices"/>
+     <addaction name="actionEditRotateTessellation"/>
+     <addaction name="actionEditScaleTessellation"/>
+    </widget>
+    <widget class="QMenu" name="menuEditAssembly">
+     <property name="title">
+      <string>Assembly</string>
+     </property>
+     <widget class="QMenu" name="menuEditAssemblyClip">
+      <property name="title">
+       <string>Clip</string>
+      </property>
+      <addaction name="actionEditAssemblyClipExact"/>
+      <addaction name="actionEditAssemblyClipTileOffset"/>
+      <addaction name="actionEditAssemblyClipAdaptiveTileOffset"/>
+     </widget>
+     <addaction name="menuEditAssemblyClip"/>
+     <addaction name="separator"/>
+     <addaction name="actionEditRestoreAssembly"/>
+    </widget>
+    <addaction name="menuEditTessellation"/>
+    <addaction name="menuEditAssembly"/>
+   </widget>
+   <widget class="QMenu" name="menuTic">
+    <property name="title">
+     <string>TIC</string>
+    </property>
+    <addaction name="actionTicSetCentersAndDirections"/>
+    <addaction name="separator"/>
+    <addaction name="actionTicTiltingAngleMethod"/>
+    <addaction name="actionTicHeightBisectionMethod"/>
+    <addaction name="separator"/>
+    <addaction name="actionTicEnableDisableSpecificBlocks"/>
+    <addaction name="actionTicAddBlockWeightLoads"/>
+    <addaction name="actionTicAddBlockForceTorqueLoads"/>
+    <addaction name="actionTicResetBlockLoads"/>
+    <addaction name="actionTicFixBottomBlocks"/>
+    <addaction name="separator"/>
+    <addaction name="actionTicCalculateOverlapping"/>
+    <addaction name="actionTicCalculateInterfaces"/>
+    <addaction name="separator"/>
+    <addaction name="actionTicStaticEquilibriumAnalysis"/>
+   </widget>
+   <widget class="QMenu" name="menuView">
+    <property name="title">
+     <string>View</string>
+    </property>
+    <widget class="QMenu" name="menuViewWorkspace">
+     <property name="title">
+      <string>Workspace</string>
+     </property>
+     <widget class="QMenu" name="menuViewTessellation">
+      <property name="title">
+       <string>Tessellation</string>
+      </property>
+      <addaction name="actionViewTessellationGeometry"/>
+      <addaction name="actionViewTessellationBoundingBox"/>
+     </widget>
+     <widget class="QMenu" name="menuViewAssembly">
+      <property name="title">
+       <string>Assembly</string>
+      </property>
+      <addaction name="actionViewAssemblyGeometry"/>
+      <addaction name="actionViewAssemblyBlockIndices"/>
+      <addaction name="actionViewAssemblyBoundingBoxes"/>
+     </widget>
+     <widget class="QMenu" name="menuViewInterfacePolygons">
+      <property name="title">
+       <string>Interface Polygons</string>
+      </property>
+      <addaction name="actionViewPlainInterfaces"/>
+      <addaction name="actionViewCompressionForces"/>
+      <addaction name="actionViewTensionForces"/>
+      <addaction name="actionViewUTangentialForces"/>
+      <addaction name="actionViewVTangentialForces"/>
+      <addaction name="separator"/>
+      <addaction name="actionViewCapInterfaceForces"/>
+     </widget>
+     <addaction name="actionViewAxes"/>
+     <addaction name="actionViewGrid"/>
+     <addaction name="menuViewTessellation"/>
+     <addaction name="actionViewTileCenters"/>
+     <addaction name="actionViewEdgeDirections"/>
+     <addaction name="menuViewAssembly"/>
+     <addaction name="menuViewInterfacePolygons"/>
+     <addaction name="separator"/>
+     <addaction name="actionViewShowAll"/>
+     <addaction name="actionViewHideAll"/>
+    </widget>
+    <widget class="QMenu" name="menuViewCamera">
+     <property name="title">
+      <string>Camera</string>
+     </property>
+     <addaction name="actionCameraFront"/>
+     <addaction name="actionCameraBack"/>
+     <addaction name="actionCameraLeft"/>
+     <addaction name="actionCameraRight"/>
+     <addaction name="actionCameraTop"/>
+     <addaction name="actionCameraBottom"/>
+     <addaction name="separator"/>
+     <addaction name="actionCameraManual"/>
+     <addaction name="actionCameraReset"/>
+    </widget>
+    <addaction name="menuViewWorkspace"/>
+    <addaction name="menuViewCamera"/>
+   </widget>
+   <widget class="QMenu" name="menuAbout">
+    <property name="title">
+     <string>About</string>
+    </property>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuEdit"/>
+   <addaction name="menuTic"/>
+   <addaction name="menuView"/>
+   <addaction name="menuAbout"/>
+  </widget>
+  <action name="actionEditTileSubdivision">
+   <property name="text">
+    <string>Face Subdivision</string>
+   </property>
+  </action>
+  <action name="actionEditNormalizeVertices">
+   <property name="text">
+    <string>Normalize Vertices</string>
+   </property>
+  </action>
+  <action name="actionEditScaleTessellation">
+   <property name="text">
+    <string>Scale</string>
+   </property>
+  </action>
+  <action name="actionEditRestoreAssembly">
+   <property name="text">
+    <string>Restore Assembly</string>
+   </property>
+  </action>
+  <action name="actionTicTiltingAngleMethod">
+   <property name="text">
+    <string>Tilting Angle Method</string>
+   </property>
+  </action>
+  <action name="actionTicHeightBisectionMethod">
+   <property name="text">
+    <string>Height-Bisection Method</string>
+   </property>
+  </action>
+  <action name="actionTicStaticEquilibriumAnalysis">
+   <property name="text">
+    <string>Static Equilibrium Analysis</string>
+   </property>
+  </action>
+  <action name="actionViewAxes">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Axes</string>
+   </property>
+  </action>
+  <action name="actionViewGrid">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Grid</string>
+   </property>
+  </action>
+  <action name="actionViewTileCenters">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Tile Centers</string>
+   </property>
+  </action>
+  <action name="actionViewEdgeDirections">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Edge Directions</string>
+   </property>
+  </action>
+  <action name="actionViewShowAll">
+   <property name="text">
+    <string>Show All</string>
+   </property>
+  </action>
+  <action name="actionViewHideAll">
+   <property name="text">
+    <string>Hide All</string>
+   </property>
+  </action>
+  <action name="actionNewWorkspace">
+   <property name="text">
+    <string>Workspace</string>
+   </property>
+  </action>
+  <action name="actionNewObjFileGeometry">
+   <property name="text">
+    <string>From OBJ file</string>
+   </property>
+  </action>
+  <action name="actionNewBendedSquareGeometry">
+   <property name="text">
+    <string>Bended Square</string>
+   </property>
+  </action>
+  <action name="actionNewConeGeometry">
+   <property name="text">
+    <string>Cone</string>
+   </property>
+  </action>
+  <action name="actionNewCylinderGeometry">
+   <property name="text">
+    <string>Cylinder</string>
+   </property>
+  </action>
+  <action name="actionNewSquareGridGeometry">
+   <property name="text">
+    <string>Square Grid</string>
+   </property>
+  </action>
+  <action name="actionNewTorusGeometry">
+   <property name="text">
+    <string>Torus</string>
+   </property>
+  </action>
+  <action name="actionNewTruncatedConeGeometry">
+   <property name="text">
+    <string>Truncated Cone</string>
+   </property>
+  </action>
+  <action name="actionNewEquilateralTriangleGeometry">
+   <property name="text">
+    <string>Equilateral Triangle</string>
+   </property>
+  </action>
+  <action name="actionNewNsidedRegularPolygonGeometry">
+   <property name="text">
+    <string>N-sided Regular Polygon</string>
+   </property>
+  </action>
+  <action name="actionNewRectangleGeometry">
+   <property name="text">
+    <string>Rectangle</string>
+   </property>
+  </action>
+  <action name="actionNewSquareGeometry">
+   <property name="text">
+    <string>Square</string>
+   </property>
+  </action>
+  <action name="actionNewPlatonicSolidGeometry">
+   <property name="text">
+    <string>Platonic Solid</string>
+   </property>
+  </action>
+  <action name="actionNewArchimedeanSolidGeometry">
+   <property name="text">
+    <string>Archimedean Solid</string>
+   </property>
+  </action>
+  <action name="actionCameraFront">
+   <property name="text">
+    <string>Front</string>
+   </property>
+  </action>
+  <action name="actionCameraBack">
+   <property name="text">
+    <string>Back</string>
+   </property>
+  </action>
+  <action name="actionCameraLeft">
+   <property name="text">
+    <string>Left</string>
+   </property>
+  </action>
+  <action name="actionCameraRight">
+   <property name="text">
+    <string>Right</string>
+   </property>
+  </action>
+  <action name="actionCameraTop">
+   <property name="text">
+    <string>Top</string>
+   </property>
+  </action>
+  <action name="actionCameraBottom">
+   <property name="text">
+    <string>Bottom</string>
+   </property>
+  </action>
+  <action name="actionCameraManual">
+   <property name="text">
+    <string>Manual</string>
+   </property>
+  </action>
+  <action name="actionCameraReset">
+   <property name="text">
+    <string>Reset</string>
+   </property>
+  </action>
+  <action name="actionClose">
+   <property name="text">
+    <string>Close</string>
+   </property>
+  </action>
+  <action name="actionEditDualTessellation">
+   <property name="text">
+    <string>Dual</string>
+   </property>
+  </action>
+  <action name="actionNewParaboloidGeometry">
+   <property name="text">
+    <string>Paraboloid</string>
+   </property>
+  </action>
+  <action name="actionTicSetCentersAndDirections">
+   <property name="text">
+    <string>Set Centers and Directions</string>
+   </property>
+  </action>
+  <action name="actionSaveAbaqusFile">
+   <property name="text">
+    <string>Save Abaqus File</string>
+   </property>
+  </action>
+  <action name="actionSaveGeogebraJsTessellationFile">
+   <property name="text">
+    <string>Tessellation</string>
+   </property>
+  </action>
+  <action name="actionSaveGeogebraJsAllAssemblyFile">
+   <property name="text">
+    <string>Assembly (Single File)</string>
+   </property>
+  </action>
+  <action name="actionSaveGeogebraJsAllInterfacePolygonsFile">
+   <property name="text">
+    <string>Interface Polygons</string>
+   </property>
+  </action>
+  <action name="actionSaveGeogebraJsAllFile">
+   <property name="text">
+    <string>All Together</string>
+   </property>
+  </action>
+  <action name="actionSaveGeogebraJsAssemblyFilePerBlock">
+   <property name="text">
+    <string>Assembly (File per Block)</string>
+   </property>
+  </action>
+  <action name="actionSaveObjTessellationFile">
+   <property name="text">
+    <string>Tessellation</string>
+   </property>
+  </action>
+  <action name="actionSaveObjAllAssemblyFile">
+   <property name="text">
+    <string>Assembly (Single File)</string>
+   </property>
+  </action>
+  <action name="actionSaveObjAssemblyFilePerBlock">
+   <property name="text">
+    <string>Assembly (File per Block)</string>
+   </property>
+  </action>
+  <action name="actionSaveObjAllInterfacePolygonsFile">
+   <property name="text">
+    <string>Interface Polygons</string>
+   </property>
+  </action>
+  <action name="actionEditAssemblyClipExact">
+   <property name="text">
+    <string>Exact</string>
+   </property>
+  </action>
+  <action name="actionEditAssemblyClipTileOffset">
+   <property name="text">
+    <string>Tile Offset</string>
+   </property>
+  </action>
+  <action name="actionEditAssemblyClipAdaptiveTileOffset">
+   <property name="text">
+    <string>Adaptive Tile Offset</string>
+   </property>
+  </action>
+  <action name="actionEditRotateTessellation">
+   <property name="text">
+    <string>Rotate</string>
+   </property>
+  </action>
+  <action name="actionEditTessellationCentroidToOrigin">
+   <property name="text">
+    <string>Centroid to Origin</string>
+   </property>
+  </action>
+  <action name="actionTicCalculateInterfaces">
+   <property name="text">
+    <string>Calculate Interfaces</string>
+   </property>
+  </action>
+  <action name="actionTicCalculateOverlapping">
+   <property name="text">
+    <string>Calculate Overlapping</string>
+   </property>
+  </action>
+  <action name="actionTicFixBottomBlocks">
+   <property name="text">
+    <string>Fix Bottom Blocks</string>
+   </property>
+  </action>
+  <action name="actionViewTessellationGeometry">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Geometry</string>
+   </property>
+  </action>
+  <action name="actionViewTessellationBoundingBox">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Bounding Box</string>
+   </property>
+  </action>
+  <action name="actionViewAssemblyGeometry">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Geometry</string>
+   </property>
+  </action>
+  <action name="actionViewAssemblyBoundingBoxes">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Bounding Boxes</string>
+   </property>
+  </action>
+  <action name="actionViewPlainInterfaces">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Plain</string>
+   </property>
+  </action>
+  <action name="actionViewCompressionForces">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Compression Forces</string>
+   </property>
+  </action>
+  <action name="actionViewTensionForces">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Tension Forces</string>
+   </property>
+  </action>
+  <action name="actionViewUTangentialForces">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>U-Tangential Forces</string>
+   </property>
+  </action>
+  <action name="actionViewVTangentialForces">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>V-Tangential Forces</string>
+   </property>
+  </action>
+  <action name="actionSaveObjWorkspaceFile">
+   <property name="text">
+    <string>Workspace</string>
+   </property>
+  </action>
+  <action name="actionSaveVrmlTessellationFile">
+   <property name="text">
+    <string>Tessellation</string>
+   </property>
+  </action>
+  <action name="actionSaveVrmlAssemblyFile">
+   <property name="text">
+    <string>Assembly (Single File)</string>
+   </property>
+  </action>
+  <action name="actionSaveVrmlAssemblyFilePerBlock">
+   <property name="text">
+    <string>Assembly (File per Block)</string>
+   </property>
+  </action>
+  <action name="actionSaveVrmlInterfacePolygonsFile">
+   <property name="text">
+    <string>Interfaces</string>
+   </property>
+  </action>
+  <action name="actionSaveVrmlWorkspaceFile">
+   <property name="text">
+    <string>Workspace</string>
+   </property>
+  </action>
+  <action name="actionEditFlipTessellation">
+   <property name="text">
+    <string>Flip</string>
+   </property>
+  </action>
+  <action name="actionNewCyclideGeometry">
+   <property name="text">
+    <string>Cyclide</string>
+   </property>
+  </action>
+  <action name="actionTicAddBlockWeightLoads">
+   <property name="text">
+    <string>Add Block Weight Loads</string>
+   </property>
+  </action>
+  <action name="actionTicAddBlockForceTorqueLoads">
+   <property name="text">
+    <string>Add Block Force/Torque Loads</string>
+   </property>
+  </action>
+  <action name="actionTicEnableDisableAllBlocks">
+   <property name="text">
+    <string>Enable/Disable All Blocks</string>
+   </property>
+  </action>
+  <action name="actionTicEnableDisableSpecificBlocks">
+   <property name="text">
+    <string>Enable/Disable Specific Blocks</string>
+   </property>
+  </action>
+  <action name="actionViewAssemblyBlockIndices">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Block Indices</string>
+   </property>
+  </action>
+  <action name="actionTicResetBlockLoads">
+   <property name="text">
+    <string>Reset Block Loads</string>
+   </property>
+  </action>
+  <action name="actionViewCapInterfaceForces">
+   <property name="text">
+    <string>Cap Forces</string>
+   </property>
+  </action>
+  <action name="actionNewBarrelVaultGeometry">
+   <property name="text">
+    <string>Barrel Vault</string>
+   </property>
+  </action>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QVTKOpenGLNativeWidget</class>
+   <extends>QWidget</extends>
+   <header>QVTKOpenGLNativeWidget.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources>
+  <include location="Icons/icons.qrc"/>
+ </resources>
+ <connections/>
+</ui>
